@@ -14,7 +14,7 @@ end
     file obj => src do |t|
         REG_EXT.match(src)
         if $~[0] == ".c"
-            sh "gcc -c #{src} -o #{obj}"
+            sh "gcc -c #{src} -m32 -nostdinc -ffreestanding -o #{obj}"
         elsif $~[0] == ".asm"
             sh "nasm -f elf32 #{src} -o #{obj}"
         end
