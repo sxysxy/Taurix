@@ -1,11 +1,14 @@
+bins = ["boot.bin", "init0.bin"]
+srcs = bins.map {|f| f.gsub(".bin", ".asm") }
 
-
-file "boot.bin" => "boot.asm" do |t|
-    sh "nasm -f bin boot.asm -o boot.bin"
+(0...bins.size).each do |i|
+    file bins[i] => srcs[i] do |t|
+        sh "nasm -f bin #{srcs[i]} -o #{bins[i]}"
+    end
 end
 
 task :build do |t|
-    Rake::Task['boot.bin'].invoke
+    bins.each {|bin| Rake::Task[bin].invoke}
 end
 
 task :clean do |t|

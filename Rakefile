@@ -20,7 +20,7 @@ task :clean do |t|
     rake_dirs.each do |dir|
         system "cd #{dir}&rake clean"
     end
-    system "del bin\\*.img"
+    system "del .\\bin\\*.img"
 end
 
 BOCHSRC_TEXT = <<EOS
@@ -59,6 +59,6 @@ task :run do |t|
     sh "#{bochs_dir}/bochs -f #{File.join(top_dir, "img/bochsrc.bxrc")}"
 end
 
-file 'img/TaurixSetup.img' => ["src/boot/boot.bin"] do |t|
+file 'img/TaurixSetup.img' => ["src/boot/boot.bin", "src/boot/init0.bin"] do |t|
     sh "ruby misc/ImageMaker.rb -d #{top_dir} -f #{t.prerequisites.join(' ')} -o #{t.name}"
 end
