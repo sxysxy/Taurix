@@ -6,6 +6,8 @@ ORG 0x10000
 [bits 16]
 
 jmp _prepare
+dw 0
+dd 0  ;GDT表前补齐8字节
 
 _GDT:  ;临时GDT表
 ;空描述符
@@ -16,31 +18,44 @@ _GDT_DATA
 dw 0xffff  ;byte 0~1
 dw 0       ;byte 2~3
 db 0       ;byte 4
-db 00010010b ;byte 5
+db 10010010b ;byte 5
 db 11001111b ;byte 6
 db 0         ;byte 7
 DataSelector equ _GDT_DATA - _GDT 
 
-;段基地址0，限4G，限R0权限，可读可执行
+;段基地址0，限4G，限R0权限，可执行
 _GDT_CODE
 dw 0xffff  ;byte 0~1
 dw 0       ;byte 2~3
 db 0       ;byte 4
-db 00011010b ;byte 5
+db 10011010b ;byte 5
 db 11001111b ;byte 6
 db 0         ;byte 7
 CodeSelector equ _GDT_CODE - _GDT
 
+;栈段，基地址0x50000, 段限0xf0000，限R0权限，可读可写
+dw 
+_GDT_STACK
+dw 0         ;byte 0~1
+dw 0         ;byte 2~3
+db 5         ;byte 4
+db 10010110b ;byte 5
+db 01001111b ;byte 6
+db 0         ;byte 7
+StackSelector equ _GDT_STACK - _GDT
+
+dq 0
+
 GdtLen equ $ - _GDT
 _GDT_info:
-dw GdtLen
+dw GdtLen-1 
 dd _GDT
 
 _prepare:
 cli
 
 ;加载GDT
-mov ax, 0
+mov ax, cs
 mov ds, ax
 lgdt [_GDT_info]
 
@@ -55,11 +70,15 @@ or eax, 1
 mov cr0, eax
 
 ;跳转保护模式
-mov ax, DataSelector
-mov ds, ax
 jmp dword CodeSelector:_protected
 
+[bits 32]
 _protected:
+mov ax, DataSelector
+mov ds, ax
+mov ax, StackSelector
+mov ss, ax
+mov ebp, 0xf0000   ;栈顶指针
 
 _hlt:
 hlt
