@@ -9,13 +9,21 @@
         {
             "label": "build",
             "type": "shell",
-            "options": {
-                "env": {
-                    "Path": "${workspaceFolder}/toolchain/ruby260-x64-mswin64/bin;${workspaceFolder}/toolchain/MinGW/bin;${workspaceFolder}/toolchain/NASM;"
-                }
+            "windows": {
+                "options": {
+                    "env": {
+                        "Path": "${workspaceFolder}/toolchain/ruby260-x64-mswin64/bin;${workspaceFolder}/toolchain/MinGW/bin;${workspaceFolder}/toolchain/NASM;"
+                    }
+                },
+                "command": "rake",
+                "args": ["build"]
             },
-            "command": "rake",
-            "args": ["build"],
+            "linux": {
+
+            },
+            "osx": {
+
+            },
             "problemMatcher": [],
             "group": {
                 "kind": "build",
@@ -25,13 +33,21 @@
         {
             "label": "test",
             "type": "shell",
-            "options": {
-                "env": {
-                    "Path": "${workspaceFolder}/toolchain/ruby260-x64-mswin64/bin;${workspaceFolder}/toolchain/MinGW/bin;${workspaceFolder}/toolchain/NASM;"
-                }
+            "windows": {
+                "options": {
+                    "env": {
+                        "Path": "${workspaceFolder}/toolchain/ruby260-x64-mswin64/bin;${workspaceFolder}/toolchain/MinGW/bin;${workspaceFolder}/toolchain/NASM;"
+                    }
+                },
+                "command": "rake",
+                "args": ["run"]
             },
-            "command": "rake",
-            "args": ["run"],
+            "linux": {
+
+            },
+            "osx": {
+
+            },
             "problemMatcher": [],
             "group": {
                 "kind": "test",
