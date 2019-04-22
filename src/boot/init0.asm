@@ -1,9 +1,13 @@
 ; init0.asm
 ; 初始化程序，负责进入保护模式，调用C语言的init1函数
 ;        author: HfCloud(sxysxygm@gmail.com)
-ORG 0x10000
+
+global init0_start  ;导出这个符号
+extern _init1
+INIT_BASE_ADDR equ 0x10000
 
 [bits 16]
+init0_start:
 
 jmp _prepare
 dw 0
@@ -14,7 +18,7 @@ _GDT:  ;临时GDT表
 dq 0
 
 ;段基地址0，限4G，限R0权限，可读可写
-_GDT_DATA
+_GDT_DATA:
 dw 0xffff  ;byte 0~1
 dw 0       ;byte 2~3
 db 0       ;byte 4
@@ -24,7 +28,7 @@ db 0         ;byte 7
 DataSelector equ _GDT_DATA - _GDT 
 
 ;段基地址0，限4G，限R0权限，可执行
-_GDT_CODE
+_GDT_CODE:
 dw 0xffff  ;byte 0~1
 dw 0       ;byte 2~3
 db 0       ;byte 4
@@ -34,8 +38,7 @@ db 0         ;byte 7
 CodeSelector equ _GDT_CODE - _GDT
 
 ;栈段，基地址0x50000, 段限0xf0000，限R0权限，可读可写
-dw 
-_GDT_STACK
+_GDT_STACK:
 dw 0         ;byte 0~1
 dw 0         ;byte 2~3
 db 5         ;byte 4
@@ -49,7 +52,7 @@ dq 0
 GdtLen equ $ - _GDT
 _GDT_info:
 dw GdtLen-1 
-dd _GDT
+dd _GDT + INIT_BASE_ADDR
 
 _prepare:
 cli
@@ -70,15 +73,17 @@ or eax, 1
 mov cr0, eax
 
 ;跳转保护模式
-jmp dword CodeSelector:_protected
+jmp dword CodeSelector:(_protected + INIT_BASE_ADDR)
 
 [bits 32]
 _protected:
 mov ax, DataSelector
 mov ds, ax
-mov ax, StackSelector
+;mov ax, StackSelector
 mov ss, ax
-mov ebp, 0xf0000   ;栈顶指针
+mov ebp, 0x60000   ;栈顶指针
+
+call _init1
 
 _hlt:
 hlt

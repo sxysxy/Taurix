@@ -65,6 +65,6 @@ task :debug do |t|
     sh "#{bochs_dir}/bochsdbg -f #{File.join(top_dir, "img/bochsrc.bxrc")}"
 end
 
-file 'img/TaurixSetup.img' => ["src/boot/boot.bin", "src/boot/init0.bin"] do |t|
+file 'img/TaurixSetup.img' => ["src/boot/boot.bin", "src/boot/init.bin"] do |t|
     sh "ruby misc/ImageMaker.rb -d #{top_dir} -f #{t.prerequisites.join(' ')} -o #{t.name}"
 end
