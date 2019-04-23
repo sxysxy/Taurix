@@ -53,6 +53,27 @@
                 "kind": "test",
                 "isDefault": true
             }
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "windows": {
+                "options": {
+                    "env": {
+                        "Path": "${workspaceFolder}/toolchain/ruby260-x64-mswin64/bin;${workspaceFolder}/toolchain/MinGW/bin;${workspaceFolder}/toolchain/NASM;"
+                    }
+                },
+                "command": "rake",
+                "args": ["clean"]
+            },
+            "linux": {
+
+            },
+            "osx": {
+
+            },
+            "problemMatcher": [],
+            "group": "none"
         }
     ]
 }
