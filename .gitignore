@@ -1,4 +1,6 @@
 /toolchain
+/vdisk
+/img
 *.bin
 *.elf
 *.o

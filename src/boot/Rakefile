@@ -1,5 +1,4 @@
 REG_EXT = /\.[a-z]+/ #用于匹配后缀名的正则表达式
-
 #参与链接的源文件
 srcs = ["init0.asm", "init1.c"]
 objs = srcs.map {|x| x.gsub(REG_EXT, ".o")}
@@ -21,7 +20,6 @@ end
     end
 end
 
-
 file "init.bin" => objs do |t|
     sh "ld -o init.elf -Ttext 0x0 -e init0_start #{objs.join(' ')}"
     sh "objcopy -R .note -R .comment -S -O binary init.elf init.bin"
@@ -38,3 +36,4 @@ task :clean do |t|
     sh "del *.elf"
     sh "del *.o"
 end
+

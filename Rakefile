@@ -3,24 +3,29 @@ top_dir = File.dirname(__FILE__)            #当前目录作为顶级目录
 rake_dirs = ["./src/boot"]
 
 bochs_dir = File.join(top_dir, "toolchain/Bochs-2.6.9")
-
-img_TaurixSetup = File.join(top_dir, "img/TaurixSetup.img")
-img_TaurixOS    = File.join(top_dir, "img/TaruixOS.img")
 bochsrc = File.join(top_dir, "img/bochsrc.bxrc")
+
+def wsl(command)
+    $is_windows ||= ((RUBY_PLATFORM =~ /win/) || (RUBY_PLATFORM =~ /mingw/))
+    if $is_windows
+        sh "wsl #{command}"
+    else 
+        sh command
+    end
+end
 
 task :build do |t| 
     rake_dirs.each do |dir|
-        system "cd #{dir}&rake build"
+        sh "cd #{dir}&rake build"
     end
-    Rake::Task['img/TaurixSetup.img'].invoke
-    #Rake::Task['TaurixOS.img'].invoke
+    Rake::Task['img/TaurixOS.img'].invoke
 end
 
 task :clean do |t|
     rake_dirs.each do |dir|
-        system "cd #{dir}&rake clean"
+        sh "cd #{dir}&rake clean"
     end
-    system "del .\\bin\\*.img"
+    wsl "rm -r ./img" rescue nil
 end
 
 BOCHSRC_TEXT = <<EOS
@@ -32,13 +37,13 @@ romimage: file=#{bochs_dir}/BIOS-bochs-latest
 vgaromimage: file=#{bochs_dir}/VGABIOS-lgpl-latest
 
 #设置软盘镜像
-floppya: 1_44=#{img_TaurixSetup}, status=inserted
+floppya: 1_44=#{File.join(top_dir, "img/TaurixOS.img")}, status=inserted
 
 #从软盘启动
 boot: a
 
 #日志文件
-log: /img/bochslog.log
+log: ./img/bochslog.log
 
 #启用鼠标
 mouse: enabled=0
@@ -65,6 +70,7 @@ task :debug do |t|
     sh "#{bochs_dir}/bochsdbg -f #{File.join(top_dir, "img/bochsrc.bxrc")}"
 end
 
-file 'img/TaurixSetup.img' => ["src/boot/boot.bin", "src/boot/init.bin"] do |t|
-    sh "ruby misc/ImageMaker.rb -d #{top_dir} -f #{t.prerequisites.join(' ')} -o #{t.name}"
+file 'img/TaurixOS.img' => ["src/boot/boot.bin", "src/boot/init.bin"] do |t|
+    sh "mkdir img" if !File.exist?("./img")    
+    sh "ruby ./misc/ImageMaker.rb -d #{top_dir} -f #{t.prerequisites.join(' ')} -o #{t.name}"
 end
