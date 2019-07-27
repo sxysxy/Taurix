@@ -1,0 +1,19 @@
+{
+    "Architecture": {
+        "x86_64": {
+            "__final__": "",
+            "boot from grub": true,
+            "base address": "0x10013140",
+            "__description__": {
+                "booted by grub": "Boot from grub"
+            }
+        }
+    },
+    "FileSystem": {
+        "ext4": {},
+        "ntfs": {}
+    },
+    "MemoeryManagement": {},
+    "Network": {},
+    "PowerManagement": {}
+}
