@@ -23,6 +23,7 @@ ASM = "nasm"
 CC = "gcc"
 CXX = "g++"
 LINK = "ld"
+RM = "rm -f"
   #!! 编译参数设定
 _CC_FLAGS_COMMON = ["-m64", "-fno-builtin", "-I./include"]
 _CXX_FLAGS_COMMON = ["-m64", "-fno-builtin", "-I./include"]
@@ -111,6 +112,16 @@ end
 #制成由grub引导的硬盘镜像文件的规则
 MAKEFILE.print("Taurix.img: Taurix\n\t")
 MAKEFILE.print("cp Taurix ./TaurixFS/boot\n\t")
-MAKEFILE.print("grub-mkrescue -o Taurix.img TaurixFS\n\t")
+MAKEFILE.print("grub-mkrescue -o Taurix.img TaurixFS\n")
+
+#别名 Image <-> Taurix.img
+MAKEFILE.print("Image:\n\tmake Taurix.img\n")
+
+#清除规则
+MAKEFILE.print("clean:\n\t")
+MAKEFILE.print("#{RM} *.o\n\t")
+MAKEFILE.print("#{RM} Taurix\n\t")
+MAKEFILE.print("#{RM} Taurix.img\n\t")
+MAKEFILE.print("#{RM} ./TaurixFS/boot/Taurix\n")
 
 MAKEFILE.close
