@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+
 try:
     from PyQt5.QtCore import *
     from PyQt5.QtGui import *
@@ -121,6 +122,7 @@ class ConfigWindow(QMainWindow):
             desc = dict()
             if "__description__" in item.json_bind:
                 desc = item.json_bind["__description__"]  
+            
             for key in item.json_bind.keys():
                 if key != "__description__" and key != "__final__":
                     option = QListWidgetItem(self.param_view_param)
@@ -131,32 +133,28 @@ class ConfigWindow(QMainWindow):
                         l = QLabel()
                         l.setText(key)
                         cb = QCheckBox()
-                        cb.setCheckState(item.json_bind[key])
+                        cb.setCheckState(item.json_bind[key] > 0)
+                        def __change_state(s):
+                            #print(l.text())
+                            item.json_bind[l.text()] = s > 0
+                        cb.stateChanged.connect(__change_state)
                         ly.addWidget(l,100)
                         ly.addWidget(cb, 1)
                         w.setLayout(ly)
-                        ck = copy.deepcopy(key)
-                        def __change_state(s):
-                            print(ck)
-                            if s > 0:
-                                item.json_bind[ck] = "true" 
-                            else:
-                                item.json_bind[ck] = "false"  
-                        cb.stateChanged.connect(__change_state)
                         self.param_view_param.setItemWidget(option, w) 
                     else:
                         w = QWidget()
                         ly = QHBoxLayout()
-                        l = QLabel()
-                        l.setText(key)
+                        l2 = QLabel()
+                        l2.setText(key)
                         le = QLineEdit()
-                        ly.addWidget(l, 1)
+                        ly.addWidget(l2, 1)
                         ly.addWidget(le, 3)
                         le.setText(item.json_bind[key])
                         le.setAlignment(Qt.AlignRight)
-                        ck = copy.deepcopy(key)
-                        def __change_text(t):
-                            item.json_bind[ck] = str(t)
+                        def __change_text(s):
+                            #print(l2.text())
+                            item.json_bind[l2.text()] = s
                         le.textChanged.connect(__change_text)
                         w.setLayout(ly)
                         self.param_view_param.setItemWidget(option, w)

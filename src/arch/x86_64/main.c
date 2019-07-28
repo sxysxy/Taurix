@@ -1,3 +1,5 @@
+#include <taurix.h>
+
 void TaurixCMain() {
     //定义基指针然后用偏移量去访问，编译出来的汇编代码似乎不太对劲。。。
     *(unsigned char *)0xb8000 = 'H';

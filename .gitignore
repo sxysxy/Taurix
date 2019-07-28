@@ -1,6 +1,5 @@
-/toolchain
-/vdisk
-/img
-*.bin
-*.elf
+taurix-settings-final.json
+Taurix
+Makefile
 *.o
+
