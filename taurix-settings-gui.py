@@ -17,6 +17,12 @@ class ConfigTreeItem(QTreeWidgetItem):
         super(QTreeWidgetItem, self).__init__()
         self.json_bind = json_bind
 
+class ConfigListItem(QListWidgetItem):
+    def __init__(self, description):
+        super(QListWidgetItem, self).__init__()
+        self.description = description
+
+
 class ConfigWindow(QMainWindow):
     def __init__(self, parent=None):
         super(QMainWindow, self).__init__(parent)
@@ -42,9 +48,10 @@ class ConfigWindow(QMainWindow):
         
         self.param_view_param = QListWidget(self)
         self.param_view_param.setAutoScroll(True)
-        self.param_view_introduce = QLabel(self)
+        self.param_view_introduce = QTextEdit(self)
         self.layout_param_view.addWidget(self.param_view_param, 5)
         self.layout_param_view.addWidget(self.param_view_introduce, 3)
+        self.param_view_introduce.setReadOnly(True)
 
         #buttons
         self.button_save_exit = QPushButton(self)
@@ -102,6 +109,7 @@ class ConfigWindow(QMainWindow):
 
         dfs_keys(None, self.json_data)
         self.class_view.itemClicked.connect(self.switch_params)
+        self.param_view_param.itemClicked.connect(self.switch_introduce)
 
     def save_exit(self):
         with open("taurix-settings-final.json", "w") as f:
@@ -122,16 +130,16 @@ class ConfigWindow(QMainWindow):
             desc = dict()
             if "__description__" in item.json_bind:
                 desc = item.json_bind["__description__"]  
-            
             for key in item.json_bind.keys():
                 if key != "__description__" and key != "__final__":
-                    option = QListWidgetItem(self.param_view_param)
+                    option = ConfigListItem(desc[key] if key in desc else "")
                     self.param_view_param.addItem(option)
                     if isinstance(item.json_bind[key], bool):
                         w = QWidget()
                         ly = QHBoxLayout()
                         l = QLabel()
                         l.setText(key)
+                        l.setFixedHeight(24)
                         cb = QCheckBox()
                         cb.setCheckState(item.json_bind[key] > 0)
                         def __change_state(s):
@@ -147,6 +155,7 @@ class ConfigWindow(QMainWindow):
                         ly = QHBoxLayout()
                         l2 = QLabel()
                         l2.setText(key)
+                        l2.setFixedHeight(24)
                         le = QLineEdit()
                         ly.addWidget(l2, 1)
                         ly.addWidget(le, 3)
@@ -158,6 +167,9 @@ class ConfigWindow(QMainWindow):
                         le.textChanged.connect(__change_text)
                         w.setLayout(ly)
                         self.param_view_param.setItemWidget(option, w)
+    
+    def switch_introduce(self, item):
+        self.param_view_introduce.setText(item.description)
 
 if __name__ == "__main__":
     try:

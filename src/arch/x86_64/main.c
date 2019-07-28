@@ -1,3 +1,9 @@
+/* File: main.c
+    author: hfcloud(sxysxygm@gmail.com) 
+        date: 2019.07.28
+*/
+
+
 #include <taurix.h>
 
 void TaurixCMain() {

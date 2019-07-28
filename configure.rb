@@ -95,7 +95,7 @@ SOURCES.each_key do |k|
 end
 
 MAKEFILE = File.open("Makefile", "w")
-MAKEFILE.print("Taurix : #{OBJECTS.join(" ")}\n\t#{LINK} #{OBJECTS.join(" ")} -o Taurix -Ttext=0x10000 --entry=start #{LINK_FLAGS_COMMON}\n")
+MAKEFILE.print("Taurix : #{OBJECTS.join(" ")}\n\t#{LINK} #{OBJECTS.join(" ")} -o Taurix -Ttext=#{SETTINGS["Architecture"]["x86_64"]["base address"]} --entry=start #{LINK_FLAGS_COMMON}\n")
 
 SOURCES.each do |src, dep|
     obj = src_obj_file(src)

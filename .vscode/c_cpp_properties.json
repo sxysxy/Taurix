@@ -1,0 +1,13 @@
+{
+    "configurations": [
+        {
+            "name": "Taurix",
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cppStandard": "c++14",
+            "cStandard": "c99",
+            "includePath": ["${default}", "${workspaceFolder}/include"]
+        }
+    ],
+    "version": 4
+}
