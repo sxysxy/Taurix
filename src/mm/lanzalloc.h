@@ -1,6 +1,10 @@
 #ifndef __LANZALLOC_H__
 #define __LANZALLOC_H__
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 struct lanzalloc;
 
 // Initialize lanzalloc
@@ -57,5 +61,9 @@ unsigned int lanzalloc_freemem(struct lanzalloc* lanzalloc);
 	Return the size of used memory.
 */
 unsigned int lanzalloc_usedmem(struct lanzalloc* lanzalloc);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif

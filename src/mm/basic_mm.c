@@ -1,26 +1,24 @@
+/* File: src/mm/basic_mm.h
+    提供最基础的内存管理功能，内存分配和释放。
+    这个basic内存管理模块只应当用于管理内核保留区内存，在内核建立起完备的内存管理系统之前使用，单线程。
+    使用lanzalloc(made by LanzaSchneider(www.lanzainc.xyz))
+        author: hfcloud(sxysxygm@gmail.com)
+          date: 2019.07.29
+ */ 
+
 #include <taurix/mm/basic_mm.h>
+#include "lanzalloc.h"
 
-/* 
-void basic_mm_malloc(BasicMM *self, size_t size) {
-
+void *basic_mm_malloc(BasicMM *self, size_t size) {
+    return lanzalloc_alloc((struct lanzalloc *)self->mm_data, size);
 }
 void basic_mm_free(BasicMM *self, void *ptr) {
-
+    lanzalloc_free((struct lanzalloc *)self->mm_data, ptr);
 }
-
 void basic_mm_initialize(BasicMM *self, void *baseptr, size_t size) {
-    ((TObject *)self)->vtbl.initialize((TObject *)self);  //调用父类的initialize
-    ((TObject *)self)->vptr = &self->vtbl;                  
-    self->vtbl.malloc = basic_mm_malloc;
-    self->vtbl.free = basic_mm_free;
-    self->vtbl.finalize = basic_mm_finalize;
+    tobject_initialize(TOOP_CAST(TObject, self));
+    self->mm_data = lanzalloc_initialize(baseptr, size, ru_isqrt(size));
 }
-
 void basic_mm_finalize(BasicMM *self) {
-    ((TObject *)self)->vtbl.finalize((TObject *)self);
+    tobject_finalize(TOOP_CAST(TObject, self));
 }
-
-void basic_mm_new(BasicMM *self) {
-    self->vtbl.initialize = basic_mm_initialize; 
-}
-*/

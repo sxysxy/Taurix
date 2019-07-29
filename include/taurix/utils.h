@@ -61,6 +61,15 @@ int ru_sprintf(char *buf, const char *format, ...);     //->src/utils/utils.c
 void *ru_memset(void *base, uint8 data, size_t size);   //->src/utils/utils.c
 void *ru_memcpy(void *dest, void *src, size_t size);
 
+//string.h
+char *ru_strcpy(char *dest, const char *src);       //->src/utils/utils.c
+int ru_strlen(const char *str);
+int ru_strcmp(const char *a, const char *b);
+
+//math
+//整数开根，返回根号x下取整
+uint32 ru_isqrt(uint32 x); 
+
 //空函数
 void ru_dummy();
 
@@ -94,18 +103,13 @@ void ru_text_clear();             //文本模式清屏
 
 //---------------OOP系统--------------
 typedef struct tagTObject {
-    uint64 flags;  //标记
-    void *vptr;    //虚函数表
-    struct {
-        void (*initialize)(struct tagTObject *self);
-        void (*finalize)(struct tagTObject *self);
-    }vtbl;
+    uint64 flags;        //标记
 }TObject;
-#define TOOP_OBJECT 1
+#define TOOP_CAST(t, obj) ((t*)obj)
 
 //->src/utils/utils.c
-void tobject_initialize(TObject *);
-void tobject_finalize(TObject *);
+void tobject_initialize(TObject *self);
+void tobject_finalize(TObject *self);
 
 CEND
 

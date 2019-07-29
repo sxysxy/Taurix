@@ -15,20 +15,18 @@ CSTART
 
 typedef struct tagBasicMM {
     TObject basic;
-    void*(*malloc) (size_t size);
-    void (*free) (void *ptr);
-
-    struct {
-        void (*initialize)(struct tagTObject *self, void *baseptr, size_t size);
-        void (*finalize)(struct tagTObject *self, size_t size);
-    }vtbl;
+    void *mm_data;  //当前使用的是lanzalloc,那么它应当指向struct lanzalloc。但这里仍然保留实现无关的接口
 }BasicMM;
 
-void basic_mm_new(BasicMM *self);
 void basic_mm_initialize(BasicMM *self, void *baseptr, size_t size);
-void basic_mm_malloc(BasicMM *self, size_t size);
+void *basic_mm_malloc(BasicMM *self, size_t size);
 void basic_mm_free(BasicMM *self, void *ptr);
 void basic_mm_finalize(BasicMM *self);
+
+extern BasicMM ru_basic_mm;
+void ru_basic_mm_init();
+void *ru_malloc(size_t size);
+void ru_free(void *ptr);
 
 CEND
 

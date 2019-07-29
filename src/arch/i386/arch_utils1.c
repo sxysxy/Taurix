@@ -34,6 +34,12 @@ int32 ru_text_init() {
     return STATUS_SUCESS;
 }
 
+/*ru_text_set_color
+ */
+void ru_text_set_color(uint32 color) {
+    text_color = color;
+}
+
 /*ru_text_get_columns
  */
 int32 ru_text_get_colmns() {
