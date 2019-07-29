@@ -55,7 +55,7 @@ int32 ru_text_putchar(int ch) {
         cursor_col = 0;
     }
     if(ch == '\n')
-        return;
+        return 0;
     TextChar *p = pos2ptr(old_row, old_col);
     p->ch = ch;
     p->color = text_color;

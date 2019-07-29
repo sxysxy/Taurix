@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#! python3
 
 try:
     from PyQt5.QtCore import *
