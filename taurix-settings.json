@@ -1,5 +1,17 @@
 {
     "Architecture" : {
+        "i386" : {
+            "__final__" : "", 
+
+            "boot from grub" : true,
+            "base address" : "0x10000",
+            
+            "__description__" : {
+                "boot from grub" : "  Boot from grub2. Using grub-mkrescue to build a bootable image within grub2 which can load Taurix.",
+                "base address" : "  This parameter indicates where our kernel to be loaded in memory."
+            }    
+        },
+
         "x86_64" : {
             "__final__" : "", 
 
@@ -55,5 +67,13 @@
                 "SVGA compatible video driver" : "  SVGA standard, see : https://vesa.org/"
             }
         }
+    },
+
+    "Debug" : {
+        "__final__" : "",
+        "enable gdb debug" : true,
+        "__description__" : {
+            "enable gdb debug" : "  Add -g option to gcc/assembler"
+        } 
     }
 } 

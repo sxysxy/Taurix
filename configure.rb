@@ -11,6 +11,23 @@ DIR_ROOT = Dir.pwd
 #加载设置
 ->{STDERR.puts("#{SETTINGS_FILENAME} not found. Please run taurix-settings-gui.py to generate it."); exit 1}[] unless File.exist?(SETTINGS_FILENAME)
 SETTINGS = JSON.parse(File.read(SETTINGS_FILENAME))
+AVALIABLE_ARCH = SETTINGS["Architecture"].keys
+
+#--目标平台的设定，如果命令行参数不指定则默认i386
+$arch = nil
+argv = ARGV
+while arg=argv.shift
+    if arg =~ /--arch=(.+)/
+        $arch = $1
+    elsif arg == "--help" || arg == "-h"
+        print "configure:\n\t--arch=target_architecture, default to i386.\n\tAvaliable architectures:\n\t\t#{AVALIABLE_ARCH.join("\n\t\t")}\n"
+    end
+end
+
+$arch = "i386" if !$arch
+if !AVALIABLE_ARCH.include?($arch)
+    puts("Unsupported architecture: #{$arch}")
+end
 
 #------------源文件和头文件的目录-------
 # 脚本中涉及到源文件的相对路径，都是相对于DIR_SRC的，头文件同理
@@ -25,10 +42,19 @@ CXX = "g++"
 LINK = "ld"
 RM = "rm -f"
   #!! 编译参数设定
-_CC_FLAGS_COMMON = ["-m64", "-fno-builtin", "-I./include"]
-_CXX_FLAGS_COMMON = ["-m64", "-fno-builtin", "-I./include"]
-_ASM_FLAGS_COMMON = ["-f elf64"]
+  #平台相关的参数（例如位数的指定）在src/arch/$arch/extra_flags.rb中
+_CC_FLAGS_COMMON = ["-fno-builtin -fno-stack-protector", "-I./include"]
+_CXX_FLAGS_COMMON = ["-fno-builtin -fno-stack-protector ", "-I./include"]
+_ASM_FLAGS_COMMON = []
 _LINK_FLAGS_COMMON = []  
+#加载平台相关的参数
+eval File.read((File.join("#{DIR_SRC}", "/arch/#{$arch}/extra_flags.rb")))
+
+if SETTINGS["Debug"]["enable gdb debug"]
+    _CC_FLAGS_COMMON.push("-g -O0")
+    _CXX_FLAGS_COMMON.push("-g -O0")
+    _ASM_FLAGS_COMMON.push("-g")
+end
 
 CC_FLAGS_COMMON = _CC_FLAGS_COMMON.join(' ')
 CXX_FLAGS_COMMON = _CXX_FLAGS_COMMON.join(' ')
@@ -66,6 +92,12 @@ end
 
 def scanf_files(stack)
     cur_dir = stack.join('/')
+    if(stack[-1] == "arch") #如果是在arch文件夹中，只扫描配置指定的平台的源文件
+        stack.push("#{$arch}")
+        scanf_files(stack)
+        stack.pop
+        return 
+    end
     Dir.foreach(cur_dir) do |f|
         next if f == "." || f == ".."
         subfile = File.join(cur_dir, f)
@@ -92,6 +124,12 @@ scanf_files(["./src"])
 OBJECTS = []
 SOURCES.each_key do |k|
     OBJECTS.push(src_obj_file(k))
+end
+
+#将boot.o调到最前面
+if OBJECTS.include?("boot.o")
+    OBJECTS.delete("boot.o")
+    OBJECTS.unshift("boot.o")
 end
 
 MAKEFILE = File.open("Makefile", "w")
@@ -125,3 +163,22 @@ MAKEFILE.print("#{RM} Taurix.img\n\t")
 MAKEFILE.print("#{RM} ./TaurixFS/boot/Taurix\n")
 
 MAKEFILE.close
+
+#生成使用qemu执行的脚本
+QEMU_SCRIPT =<<AAAA
+#!/usr/bin/sh
+make Image
+if [ $? -eq 0 ]; then
+    env LANG=en_US.UTF8 qemu-system-#{$arch} Taurix.img %s
+fi    
+AAAA
+
+QEMURUN = File.open("QemuRun.sh", "w") do |f|
+    f.print(sprintf(QEMU_SCRIPT, ""))
+end
+system("chmod +x QemuRun.sh")
+
+QEMUDEBUG = File.open("QemuDebug.sh", "w") do |f|
+    f.print(sprintf(QEMU_SCRIPT, "-S -s"))
+end
+system("chmod +x QemuDebug.sh")

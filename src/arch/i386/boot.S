@@ -1,4 +1,4 @@
-[bits 64]
+[bits 32]
 [section .text]
 global start, _start
 extern TaurixCMain
@@ -23,7 +23,7 @@ multiboot_entry:
 
 ;初始化栈
 STACK_SIZE equ 0x2000
-mov rsp, stack_area+STACK_SIZE
+mov esp, stack_area+STACK_SIZE
 
 call TaurixCMain
 
