@@ -134,7 +134,7 @@ end
 
 MAKEFILE = File.open("Makefile", "w")
 BASE_ADDR = SETTINGS["Architecture"][$arch]["base address"] || 0x10000
-MAKEFILE.print("Taurix : #{OBJECTS.join(" ")}\n\t#{LINK} #{OBJECTS.join(" ")} -o Taurix #{(RUBY_PLATFORM =~ /darwin/) ? "-image_base #{BASE_ADDR}" : "-Ttext=#{BASE_ADDR}"} --entry=start #{LINK_FLAGS_COMMON}\n")
+MAKEFILE.print("Taurix : #{OBJECTS.join(" ")}\n\t#{LINK} #{OBJECTS.join(" ")} -o Taurix #{(RUBY_PLATFORM =~ /darwin/) ? "-image_base #{BASE_ADDR}" : "-Ttext=#{BASE_ADDR}"} #{(RUBY_PLATFORM =~ /darwin/) ? "-e start" : "--entry=start"} #{LINK_FLAGS_COMMON}\n")
 
 SOURCES.each do |src, dep|
     obj = src_obj_file(src)
