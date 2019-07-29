@@ -29,6 +29,7 @@ cd Taurix
 ```
 ./configure.rb
 ```
+如果添加了新的源文件请重新执行configure
 
 构建镜像Taurix.img
 ```
@@ -44,4 +45,11 @@ make Image
 ```
 ./QemuDebug.sh
 ```
+如果构建成功，会发现qemu虚拟机启动后立刻暂停，这时候就可以使用gdb连接qemu进行调试了。这时可以新打开终端切换到Taurix目录，执行
+```
+gdb Taurix
+target remote localhost:1234
+```
+就可以进行源码级调试了
+
 

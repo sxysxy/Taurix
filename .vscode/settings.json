@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "taurix.h": "c",
-        "ruby.h": "c"
+        "ruby.h": "c",
+        "basic_mm.h": "c"
     }
 }

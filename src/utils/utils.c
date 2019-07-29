@@ -33,3 +33,12 @@ void *ru_memcpy(void *dest, void *src, size_t size) {
         *pdest++ = *psrc++;
     return dest;
 }
+
+
+//OOP system 
+void tobject_initailize(TObject *self) {
+    self->flags = 0;
+    self->vptr = &self->vtbl;
+}
+
+void tobject_finalize(TObject *this) { }
