@@ -1,5 +1,5 @@
-/* File: src/arch/x86_64/arch_utils1.c
-    x86_64平台相关的一些基本公用函数的实现，对应include/taurix/utils.h中的一部分函数的声明
+/* File: src/arch/i386/arch_utils1.c
+    i386平台相关的一些基本公用函数的实现，对应include/taurix/utils.h中的一部分函数的声明
     author: hfcloud(sxysxygm@gmail.com) 
         date: 2019.07.29
  */
@@ -28,7 +28,9 @@ int32 ru_text_init() {
     vram = (TextChar*)0xb8000;
     ROWS = ru_text_get_rows();
     COLUMNS = ru_text_get_colmns();
-    cursor_row = cursor_col = 0;
+    cursor_row = 0;
+    cursor_col = 0;
+    text_color = 7; //白色white
     return STATUS_SUCESS;
 }
 
@@ -47,13 +49,16 @@ int32 ru_text_get_rows() {
 /*ru_text_putchar
  */
 int32 ru_text_putchar(int ch) {
-    TextChar *p = pos2ptr(cursor_row, cursor_col);
-    p->ch = ch;
-    p->color = text_color;
+    int old_row = cursor_row, old_col = cursor_col;
     if(ch == '\n' || ++cursor_col >= COLUMNS) {
         cursor_row += 1;
         cursor_col = 0;
     }
+    if(ch == '\n')
+        return;
+    TextChar *p = pos2ptr(old_row, old_col);
+    p->ch = ch;
+    p->color = text_color;
     return ch;
 }
 

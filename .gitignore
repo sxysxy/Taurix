@@ -2,5 +2,7 @@ taurix-settings-final.json
 Taurix
 Taurix.img
 Makefile
+QemuRun.sh
+QemuDebug.sh
 *.o
 

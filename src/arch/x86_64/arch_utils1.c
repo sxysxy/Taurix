@@ -16,9 +16,9 @@ typedef struct tagTextChar {
     };
 }TextChar;
 
-__attribute__((section(".text"))) static TextChar *vram;
-__attribute__((section(".text"))) static int32 cursor_row, cursor_col, ROWS, COLUMNS; 
-__attribute__((section(".text"))) static int32 text_color;
+static TextChar *vram;
+static int32 cursor_row, cursor_col, ROWS, COLUMNS; 
+static int32 text_color;
 
 #define pos2ptr(row, col) (vram + row*COLUMNS + col)
 
@@ -28,7 +28,9 @@ int32 ru_text_init() {
     vram = (TextChar*)0xb8000;
     ROWS = ru_text_get_rows();
     COLUMNS = ru_text_get_colmns();
-    cursor_row = cursor_col = 0;
+    cursor_row = 0;
+    cursor_col = 0;
+    text_color = 7; //白色white
     return STATUS_SUCESS;
 }
 
@@ -47,11 +49,14 @@ int32 ru_text_get_rows() {
 /*ru_text_putchar
  */
 int32 ru_text_putchar(int ch) {
+    int old_row = cursor_row, old_col = cursor_col;
     if(ch == '\n' || ++cursor_col >= COLUMNS) {
         cursor_row += 1;
         cursor_col = 0;
     }
-    TextChar *p = pos2ptr(cursor_row, cursor_col);
+    if(ch == '\n')
+        return;
+    TextChar *p = pos2ptr(old_row, old_col);
     p->ch = ch;
     p->color = text_color;
     return ch;
