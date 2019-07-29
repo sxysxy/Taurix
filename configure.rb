@@ -75,13 +75,13 @@ SRC_EXTNAMS = C_CXX_EXTNAMES + ASM_EXTNAMES
 def scan_file_dependence(file, recoder)
     ext = File.extname(file)
     #排除掉不是源代码文件
-    return false unless SRC_EXTNAMS.include? ext
+    return false if !SRC_EXTNAMS.include?(ext)
     
     fp = File.open(file)
     recoder[file] = []
     fp.each_line do |line|
         if C_CXX_EXTNAMES.include?(ext)
-            /#include\s*[<"](.+)[>"]/.match(line)
+            /#include\s*[<](.+)[>]/.match(line)
             recoder[file].push(File.join("./include", $1)) if $1
         #else ASM_EXTNAMES.include?(ext)
         end
@@ -133,7 +133,8 @@ if OBJECTS.include?("boot.o")
 end
 
 MAKEFILE = File.open("Makefile", "w")
-MAKEFILE.print("Taurix : #{OBJECTS.join(" ")}\n\t#{LINK} #{OBJECTS.join(" ")} -o Taurix -Ttext=#{SETTINGS["Architecture"]["x86_64"]["base address"]} --entry=start #{LINK_FLAGS_COMMON}\n")
+BASE_ADDR = SETTINGS["Architecture"][$arch]["base address"] || 0x10000
+MAKEFILE.print("Taurix : #{OBJECTS.join(" ")}\n\t#{LINK} #{OBJECTS.join(" ")} -o Taurix #{(RUBY_PLATFORM =~ /darwin/) ? "-image_base #{BASE_ADDR}" : "-Ttext=#{BASE_ADDR}"} --entry=start #{LINK_FLAGS_COMMON}\n")
 
 SOURCES.each do |src, dep|
     obj = src_obj_file(src)

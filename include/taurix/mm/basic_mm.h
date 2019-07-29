@@ -15,12 +15,16 @@ CSTART
 
 typedef struct tagBasicMM {
     TObject basic;
-    struct VTable {
-        void*(*malloc) (size_t size);
-        void (*free) (void *ptr);
+    void*(*malloc) (size_t size);
+    void (*free) (void *ptr);
+
+    struct {
+        void (*initialize)(struct tagTObject *self, void *baseptr, size_t size);
+        void (*finalize)(struct tagTObject *self, size_t size);
     }vtbl;
 }BasicMM;
 
+void basic_mm_new(BasicMM *self);
 void basic_mm_initialize(BasicMM *self, void *baseptr, size_t size);
 void basic_mm_malloc(BasicMM *self, size_t size);
 void basic_mm_free(BasicMM *self, void *ptr);

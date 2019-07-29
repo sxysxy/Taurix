@@ -96,7 +96,7 @@ void ru_text_clear();             //文本模式清屏
 typedef struct tagTObject {
     uint64 flags;  //标记
     void *vptr;    //虚函数表
-    struct VTable {
+    struct {
         void (*initialize)(struct tagTObject *self);
         void (*finalize)(struct tagTObject *self);
     }vtbl;
