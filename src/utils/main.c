@@ -24,7 +24,7 @@ int basic_mm_init() {
     ru_text_set_color(1); //-> TODO: VGA文本模式标准，1是蓝色。。。先暂时这样，以后图形驱动搞好了这里需要改一下
     ru_text_print(test);  
     ru_free(test);
-    return STATUS_SUCESS;
+    return STATUS_SUCCESS;
 }
 
 void TaurixCMain() {

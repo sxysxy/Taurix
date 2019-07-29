@@ -27,7 +27,7 @@ CSTART
 #define _IN_OUT
 
 //通用返回值
-#define STATUS_SUCESS 1
+#define STATUS_SUCCESS 1
 #define STATUS_FAILED 0
 
 //检查数据长度

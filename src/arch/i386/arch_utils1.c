@@ -31,7 +31,7 @@ int32 ru_text_init() {
     cursor_row = 0;
     cursor_col = 0;
     text_color = 7; //白色white
-    return STATUS_SUCESS;
+    return STATUS_SUCCESS;
 }
 
 /*ru_text_set_color
