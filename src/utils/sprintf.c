@@ -292,10 +292,10 @@ static inline int internal_print_o(
 			v += putchar(o, char_plus);
 		else if (flag_force_space_sign)
 			v += putchar(o, char_space);
-		for (int32 i = width - w; i > 0; --i)
-			v += putchar(o, char_zero);
 		if (flag_specifier)
 			v += internal_print_string(putchar, o, specifier_o);
+		for (int32 i = width - w; i > 0; --i)
+			v += putchar(o, char_zero);
 		v += internal_print_number_o(putchar, o, value);
 	}
 	else if (flag_left_justify) {
@@ -343,10 +343,10 @@ static inline int internal_print_x(
 			v += putchar(o, char_plus);
 		else if (flag_force_space_sign)
 			v += putchar(o, char_space);
-		for (int32 i = width - w; i > 0; --i)
-			v += putchar(o, char_zero);
 		if (flag_specifier)
 			v += internal_print_string(putchar, o, specifier_x);
+		for (int32 i = width - w; i > 0; --i)
+			v += putchar(o, char_zero);
 		v += internal_print_number_x(putchar, o, value);
 	}
 	else if (flag_left_justify) {
@@ -394,10 +394,10 @@ static inline int internal_print_X(
 			v += putchar(o, char_plus);
 		else if (flag_force_space_sign)
 			v += putchar(o, char_space);
-		for (int32 i = width - w; i > 0; --i)
-			v += putchar(o, char_zero);
 		if (flag_specifier)
 			v += internal_print_string(putchar, o, specifier_X);
+		for (int32 i = width - w; i > 0; --i)
+			v += putchar(o, char_zero);
 		v += internal_print_number_X(putchar, o, value);
 	}
 	else if (flag_left_justify) {
@@ -472,6 +472,7 @@ static inline int internal_vprintf(
 		width;
 	while (1) {
 		CharType c = *fmt++;
+		loop:
 		if (c) {
 			switch (state) {
 			case 0:
@@ -545,11 +546,22 @@ static inline int internal_vprintf(
 					state = 0;
 					break;
 				default:
-					if (is_width_digit(c))
-						width = width * width_digit_base + width_digit_to_number(c);
+					if (is_width_digit(c)) {
+						width = width_digit_to_number(c);
+						state = 2;
+					}
 					else
 						state = 0;
 				}
+				break;
+			case 2:
+				if (is_width_digit(c))
+					width = width * width_digit_base + width_digit_to_number(c);
+				else {
+					state = 1;
+					goto loop;
+				}
+				break;
 			}
 		}
 		else
