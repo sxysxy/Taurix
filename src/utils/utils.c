@@ -57,7 +57,7 @@ int ru_strcmp(const char *a, const char *b) {
 /* ru_isqrt
  */
 uint32 ru_isqrt(uint32 x) {
-    uint32 l = 0, r = x, ans = 0;
+    uint32 l = 0, r = x < 65535 ? x : 65535, ans = 0;
     while(l <= r) {
         uint32 m = (l+r) >> 1;
         if(m * m <= x) {
@@ -73,11 +73,14 @@ uint32 ru_isqrt(uint32 x) {
 //basic_mm
 //基本内存管理器，定义
 BasicMM ru_basic_mm;
-void ru_basic_mm_init() {
-    basic_mm_initialize(&ru_basic_mm, 0, 32 * 1024 * 1024);
+void ru_basic_mm_init(void *baseaddr, size_t size) {
+    basic_mm_initialize(&ru_basic_mm, baseaddr, size);
 }
 void *ru_malloc(size_t size) {
     return basic_mm_malloc(&ru_basic_mm, size);
+}
+void *ru_realloc(void *address, size_t size) {
+    return basic_mm_realloc(&ru_basic_mm, address, size);
 }
 void ru_free(void *ptr) {
     basic_mm_free(&ru_basic_mm, ptr);

@@ -12,6 +12,9 @@
 void *basic_mm_malloc(BasicMM *self, size_t size) {
     return lanzalloc_alloc((struct lanzalloc *)self->mm_data, size);
 }
+void *basic_mm_realloc(BasicMM *self, void *address, size_t size) {
+    return lanzalloc_realloc((struct lanzalloc *)self->mm_data, address, size);
+}
 void basic_mm_free(BasicMM *self, void *ptr) {
     lanzalloc_free((struct lanzalloc *)self->mm_data, ptr);
 }

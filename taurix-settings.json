@@ -4,7 +4,7 @@
             "__final__" : "", 
 
             "boot from grub" : true,
-            "base address" : "0x10000",
+            "base address" : "0x100000",
             
             "__description__" : {
                 "boot from grub" : "  Boot from grub2. Using grub-mkrescue to build a bootable image within grub2 which can load Taurix.",
@@ -16,7 +16,7 @@
             "__final__" : "", 
 
             "boot from grub" : true,
-            "base address" : "0x10000",
+            "base address" : "0x100000",
             
             "__description__" : {
                 "boot from grub" : "  Boot from grub2. Using grub-mkrescue to build a bootable image within grub2 which can load Taurix.",

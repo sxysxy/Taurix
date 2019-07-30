@@ -1,13 +1,16 @@
-/* File: include/taurix/sys/arch_init.h
-    目标平台初始化的接口的声明
+/* File: include/taurix/arch_init.h
+    平台无关的 目标平台初始化的接口的声明
+    接口的实现应当在 src/arch/$arch/arch_init.c
         author: hfcloud(sxysxygm@gmail.com)
-
+          date: 2019.07.30
  */
 
 #ifndef ARCH_INIT_H
 #define ARCH_INIT_H
 
 #include <taurix.h>
+
+CSTART
 
 //针对目标平台的设备初始化模块
 // 返回 STATUS_SUCCESS 成功
@@ -33,3 +36,5 @@ uint32 arch_init_video();
 uint32 arch_init_misc();
 
 #endif
+
+CEND

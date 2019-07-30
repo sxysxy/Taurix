@@ -3,6 +3,10 @@
         "taurix.h": "c",
         "ruby.h": "c",
         "basic_mm.h": "c",
-        "lanzalloc.h": "c"
+        "lanzalloc.h": "c",
+        "stdarg.h": "c",
+        "cstdarg": "c",
+        "arch_init.h": "c",
+        "i386_utils.h": "c"
     }
 }

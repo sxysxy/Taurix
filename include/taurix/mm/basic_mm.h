@@ -20,12 +20,14 @@ typedef struct tagBasicMM {
 
 void basic_mm_initialize(BasicMM *self, void *baseptr, size_t size);
 void *basic_mm_malloc(BasicMM *self, size_t size);
+void *basic_mm_realloc(BasicMM *self, void *address, size_t size);
 void basic_mm_free(BasicMM *self, void *ptr);
 void basic_mm_finalize(BasicMM *self);
 
 extern BasicMM ru_basic_mm;
-void ru_basic_mm_init();
+void ru_basic_mm_init(void *baseaddr, size_t size);      //->src/utils/utils.c
 void *ru_malloc(size_t size);
+void *ru_realloc(void *address, size_t size);
 void ru_free(void *ptr);
 
 CEND
