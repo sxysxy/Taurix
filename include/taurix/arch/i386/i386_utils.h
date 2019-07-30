@@ -8,6 +8,11 @@
 #ifndef I386_UTILS_H
 #define I386_UTILS_H
 
+#ifndef __I386__
+#define __I386__
+#endif
+
+
 #include <taurix.h>
 
 CSTART
@@ -177,5 +182,14 @@ uint32 i386_get_cr4();
 //设置cr4寄存器值
 void i386_set_cr4(uint32 cr4);
 
+//三个nop用于极短暂的延时
+void i386_nop3();
+
 CEND
+
+
+//additional 
+#include <taurix/arch/i386/pic.h>
+#include <taurix/arch/i386/ints.h>
+
 #endif

@@ -43,7 +43,7 @@ int basic_mm_init() {
 
     char *test = ru_malloc(200);
     ru_sprintf_s(test, 200, "[ OK ] Init basic memory management of %dMb Memory\n", KERNEL_RESERVE_SIZE / 1024 / 1024);
-    ru_text_set_color(VGA_TEXT_BLUE); //-> TODO: VGA文本模式标准，1是蓝色。。。先暂时这样，以后图形驱动搞好了这里需要改一下
+    ru_text_set_color(VGA_TEXT_BLUE); 
     ru_text_print(test);  
     ru_free(test);
     return STATUS_SUCCESS;

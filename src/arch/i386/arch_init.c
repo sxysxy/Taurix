@@ -21,10 +21,13 @@ uint32 init_gdt() {
     i386_set_gdtr(sizeof(GDTItem) * GDT_MAX_NUMBER - 1, g_gdt);
     void reload_selectors();
     reload_selectors();
+    return STATUS_SUCCESS;
 }
 
 uint32 init_idt() {
-
+    g_idt = ru_malloc(sizeof(IDT_MAX_NUMBER) * GDT_MAX_NUMBER);
+    i386_set_idtr(sizeof(IDT_MAX_NUMBER) * GDT_MAX_NUMBER - 1, g_idt);
+    return STATUS_SUCCESS;
 }
 
 //针对目标平台的设备初始化模块
@@ -32,14 +35,19 @@ uint32 init_idt() {
 //     STATUS_FAILED
 uint32 arch_init() {
     arch_init_memory();
+    init_pic();
+    ru_enable_interrupt();
     init_idt();
+    init_ints();
 
     return STATUS_SUCCESS;
 }
 
 //初始化内存（为高级内存管理做准备）
 uint32 arch_init_memory() {
-    init_gdt();
+    init_gdt(); 
+
+    return STATUS_SUCCESS;
 }
 
 //初始化储存设备
