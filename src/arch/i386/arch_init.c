@@ -11,7 +11,7 @@
 GDTItem *g_gdt = 0;
 IDTItem *g_idt = 0;
 
-uint32 init_gdt() {
+int32 init_gdt() {
     g_gdt = ru_malloc(sizeof(GDTItem) * GDT_MAX_NUMBER);
     i386_set_gdt_item(g_gdt + 0, 0, 0, 0);
     i386_set_gdt_item(g_gdt + SELECTOR_INDEX_CODE32_KERNEL, 0, 0xffffffffu, FLAGS_GDT_CODE32_KERNEL);
@@ -24,19 +24,20 @@ uint32 init_gdt() {
     return STATUS_SUCCESS;
 }
 
-uint32 init_idt() {
-    g_idt = ru_malloc(sizeof(IDT_MAX_NUMBER) * GDT_MAX_NUMBER);
-    i386_set_idtr(sizeof(IDT_MAX_NUMBER) * GDT_MAX_NUMBER - 1, g_idt);
+int32 init_idt() {
+    g_idt = ru_malloc(sizeof(IDTItem) * IDT_MAX_NUMBER);
+    i386_set_idtr(sizeof(IDTItem) * IDT_MAX_NUMBER - 1, g_idt);
     return STATUS_SUCCESS;
 }
+
+int32 arch_init_memory();
 
 //针对目标平台的设备初始化模块
 // 返回 STATUS_SUCCESS 成功
 //     STATUS_FAILED
-uint32 arch_init() {
+int32 arch_init() {
     arch_init_memory();
     init_pic();
-    ru_enable_interrupt();
     init_idt();
     init_ints();
 
@@ -44,14 +45,14 @@ uint32 arch_init() {
 }
 
 //初始化内存（为高级内存管理做准备）
-uint32 arch_init_memory() {
+int32 arch_init_memory() {
     init_gdt(); 
 
     return STATUS_SUCCESS;
 }
 
 //初始化储存设备
-uint32 arch_init_storage() {
+int32 arch_init_storage() {
 
 }
 
@@ -61,16 +62,16 @@ uint32 arch_init_clock() {
 }
 
 //初始化键盘输入设备
-uint32 arch_init_keyboard() {
+int32 arch_init_keyboard() {
 
 }
 
 //初始化图形设备
-uint32 arch_init_video() {
+int32 arch_init_video() {
 
 }
 
 //杂项的初始化
-uint32 arch_init_misc() {
+int32 arch_init_misc() {
 
 }

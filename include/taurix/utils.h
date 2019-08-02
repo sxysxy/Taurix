@@ -124,6 +124,7 @@ void ru_text_clear();             //文本模式清屏
 void ru_kernel_suspend();  //src->/平台/arch_utils(n).c
 
 //---------------OOP系统--------------
+//TODO: 使用消息机制的话，虚函数表已经没有用了，消息响应的方式更加灵活。
 typedef struct tagTObject {
     uint64 flags;        //标记
 }TObject;

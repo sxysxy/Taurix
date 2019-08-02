@@ -57,6 +57,17 @@ typedef struct tagIDTItem {
     uint16 offset_hight;
 }IDTItem;
 
+//TSS
+typedef struct tagTSS32 {
+    uint32 prev_link;
+    uint32 esp0, ss0, esp1, ss1, esp2, ss2;
+    uint32 cr3;
+    uint32 eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
+    uint32 es, cs, ss, ds, fs, gs;
+    uint32 ldtr;
+    uint32 io_permission;
+}TSS32;
+
 extern GDTItem *g_gdt;
 extern IDTItem *g_idt;
 
@@ -64,7 +75,7 @@ extern IDTItem *g_idt;
 #define IDT_MAX_NUMBER 256
 
 //段已访问
-#define ACESS_ACESS         0x01 
+#define ACCESS_ACCESS       0x01 
 
 //数据段只读
 #define ACCESS_RO           0x00
@@ -76,7 +87,7 @@ extern IDTItem *g_idt;
 #define ACCESS_GROWDOWN     0x04 
 
 //代码段，只执行
-#define ACESS_EXECO         0x08
+#define ACCESS_EXECO        0x08
 
 //代码段，可读可执行
 #define ACCESS_REXEC        0x0a
@@ -137,6 +148,40 @@ extern IDTItem *g_idt;
 #define SELECTOR_INDEX_DATA32_USER        4
 #define FLAGS_GDT_DATA32_USER          (ACCESS_RW | SEL_P | SEL_BITS_32 | SEL_4K | SEL_STORAGE | DPL_RING3)
 
+//TSS 预留给TSS，理论上讲一个cpu核心使用一个
+#define SELECTOR_INDEX_TSS0              5
+#define SELECTOR_INDEX_TSS1              6
+#define SELECTOR_INDEX_TSS2              7
+#define SELECTOR_INDEX_TSS3              8
+#define SELECTOR_INDEX_TSS4              9
+#define SELECTOR_INDEX_TSS5              10
+#define SELECTOR_INDEX_TSS6              11
+#define SELECTOR_INDEX_TSS7              12
+#define SELECTOR_INDEX_TSS8              13
+#define SELECTOR_INDEX_TSS9              14
+#define SELECTOR_INDEX_TSS10             15
+#define SELECTOR_INDEX_TSS11             16
+#define SELECTOR_INDEX_TSS12             17
+#define SELECTOR_INDEX_TSS13             18
+#define SELECTOR_INDEX_TSS14             19
+#define SELECTOR_INDEX_TSS15             20
+#define SELECTOR_INDEX_MAX               20
+#define SELECTOR_INDEX_TSS(n)            (SELECTOR_INDEX_TSS0 + n)
+
+//TSS32
+//读/执行,已访问,有效,系统段(TSS描述符)
+#define FLAGS_TSS32                    (ACCESS_EXECO | ACCESS_ACCESS | SEL_P | SEL_SYS)  
+//(sizeof(TSS32)-1)
+#define TSS32_LIMIT                    (sizeof(TSS32)-1)
+
+//INTGATE
+//读/执行,一致代码段,有效,系统段(门描述符)
+#define FLAGS_INTGATE                  (ACCESS_REXEC | ACCESS_FIT | SEL_P | SEL_SYS)
+
+//获得当前活动的cpu的编号
+//TODO: 完成 实现！ 重要
+//uint32 get_cpu_index(void);
+#define get_cpu_index(...) (0)
 
 /* 设置gdt表
     limit是gdt表最后一个字节的地址
@@ -146,7 +191,7 @@ void i386_set_gdtr(uint16 limit, void *gdt_addr);
 
 /* 设置gdt项
  */
-void i386_set_gdt_item(GDTItem *item, uint32 base, uint32 limit, uint32 access);
+void i386_set_gdt_item(GDTItem *item, uint32 base, uint32 limit, uint32 flags);
 
 /* 设置idt表
     limit是idt表最后一个字节的地址
@@ -183,7 +228,11 @@ uint32 i386_get_cr4();
 void i386_set_cr4(uint32 cr4);
 
 //三个nop用于极短暂的延时
-void i386_nop3();
+#define i386_nop3(...) __asm__("nop\n\tnop\n\tnop\n\t");
+
+void i386_ltr(uint16 selector);
+
+void i386_jmp_sel(uint16 selector, uint32 offset);
 
 CEND
 

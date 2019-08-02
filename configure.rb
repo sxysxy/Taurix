@@ -47,6 +47,7 @@ _CC_FLAGS_COMMON = ["-fno-builtin -fno-stack-protector", "-I./include"]
 _CXX_FLAGS_COMMON = ["-fno-builtin -fno-stack-protector ", "-I./include"]
 _ASM_FLAGS_COMMON = []
 _LINK_FLAGS_COMMON = []  
+
 #加载平台相关的参数
 eval File.read((File.join("#{DIR_SRC}", "/arch/#{$arch}/extra_flags.rb")))
 
@@ -55,6 +56,7 @@ if SETTINGS["Debug"]["enable gdb debug"]
     _CXX_FLAGS_COMMON.push("-g -O0")
     _ASM_FLAGS_COMMON.push("-g")
 end
+
 
 CC_FLAGS_COMMON = _CC_FLAGS_COMMON.join(' ')
 CXX_FLAGS_COMMON = _CXX_FLAGS_COMMON.join(' ')
@@ -144,7 +146,7 @@ SOURCES.each do |src, dep|
     elsif CXX_EXTNAMES.include?(File.extname(src))
         MAKEFILE.print("#{CXX} -c #{src} -o #{obj} #{CXX_FLAGS_COMMON}\n")
     elsif ASM_EXTNAMES.include?(File.extname(src))
-        MAKEFILE.print("#{ASM} #{src} -o #{obj} #{ASM_FLAGS_COMMON}\n")
+        MAKEFILE.print("#{ASM} #{ASM_FLAGS_COMMON} #{src} -o #{obj}\n")
     end
 end
 

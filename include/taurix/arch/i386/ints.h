@@ -28,6 +28,15 @@ CSTART
 #define GATE_INDEX_IRQ14        0x2e
 #define GATE_INDEX_IRQ15        0x2f
 
+//Divide Error(caused by div 0)
+#define GATE_INDEX_EXCEPTION_DE   0x00
+
+//Double Fault
+#define GATE_INDEX_EXCEPTION_DF   0x08
+
+//General Protection
+#define GATE_INDEX_EXCEPTION_GP   0x0d
+
 //初始化中断 */
 int32 init_ints();
 

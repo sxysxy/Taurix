@@ -53,7 +53,7 @@ int32 ru_text_get_colmns() {
 /*ru_text_get_rows
  */
 int32 ru_text_get_rows() {
-    return 24;
+    return 25;
 }
 
 /*ru_text_putchar

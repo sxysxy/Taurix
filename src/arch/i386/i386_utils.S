@@ -9,7 +9,7 @@ global i386_get_cr0, i386_set_cr0
 global i386_get_cr2, i386_set_cr2
 global i386_get_cr3, i386_set_cr3
 global i386_get_cr4, i386_set_cr4
-global i386_nop3 ;3个nop用于延时
+global i386_ltr, i386_jmp_sel
 
 global reload_selectors ;仅在src/arch/i386/arch_init.c内部使用 
 
@@ -63,10 +63,28 @@ i386_set_cr4:
     mov cr4, eax
     ret
 
-i386_nop3:
-    nop
-    nop 
-    nop 
+;void i386_ltr(uint16 selector)
+i386_ltr:
+    mov eax, [ebp+4]
+    shl eax, 3
+    mov [ebp+4], eax 
+    ltr [ebp+4]
+    ret
+
+;提供一个C语言函数，能够实现 jmp 段选择子:偏移
+;void i386_jmp_sel(uint16 selector, uint32 offset)
+i386_jmp_sel:
+    push ebp 
+    mov ebp, esp
+
+    mov eax, [ebp+8]
+    shl ax, 3
+    push eax 
+    mov eax, [ebp+12]
+    push eax 
+    retf    ;模拟远调用返回
+    
+    leave
     ret
 
 reload_selectors:

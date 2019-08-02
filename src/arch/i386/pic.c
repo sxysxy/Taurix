@@ -35,7 +35,7 @@ int32 init_pic() {
     i386_nop3();
 
     //先屏蔽所有中断
-    ru_port_write8(I8259_M_DATA_PORT, 0xff);
+    ru_port_write8(I8259_M_DATA_PORT, 0xf9);
     i386_nop3();
     ru_port_write8(I8259_S_DATA_PORT, 0xff);
     i386_nop3();

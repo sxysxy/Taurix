@@ -7,6 +7,7 @@
 #include <taurix.h>
 #include <taurix/mm/basic_mm.h>
 #include <taurix/arch_init.h>
+#include <taurix/process.h>
 
 //内核起始地址
 #define KERNEL_BASE_ADDRESS ((void*)0x100000)
@@ -49,6 +50,29 @@ int basic_mm_init() {
     return STATUS_SUCCESS;
 }
 
+//暂时的代码，测试多任务
+#include <taurix/arch/i386/i386_utils.h>
+void test_long_jmp(void) {
+    ru_text_print("[ OK ] Long jump ok\n");
+    ru_kernel_suspend();
+}
+
+int process1_main() {
+    ru_text_print("Process 1: Hello world\n");
+    for(;;); //这家伙在用户态也调用不了suspend省电一点地挂起，也没有实现进程sleep系统调用，就先这样吧。
+}
+
+void test_process() {
+    ProcessInfo pinfo;
+    pinfo.entry = process1_main;
+    pinfo.pid = 1, pinfo.parent_id = 0;
+    pinfo.priority = 20;
+    pinfo.stack = ru_malloc(0x10000);
+    pinfo.stack_size = 0x10000;
+    Process *proc1 = process_initialize(&pinfo);
+    process_switch_to(proc1);
+}
+
 void TaurixCMain() {
     hello();
 
@@ -70,4 +94,11 @@ void TaurixCMain() {
         ru_text_set_color(VGA_TEXT_BLUE);
         ru_text_print("[ OK ] Initialize the architecture, TODO: Finish this module.\n");
     }
+    
+    //TODO: fixme: all crash. keyboard, div 0, process 
+    ru_enable_interrupt();
+    //int a = 3;
+    //int b = a / 0;
+    //test_process();
+    ru_kernel_suspend();
 }

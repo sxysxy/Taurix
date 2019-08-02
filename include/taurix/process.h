@@ -18,19 +18,25 @@ typedef struct tagProcess Process;
 typedef struct tagProcessInfo {
     uint32 pid, parent_id;  //id
 
+    void *entry;            //入口地址
+
     /* 调度相关 */
     uint32 priority;          //优先权 
     uint32 remain_time_slice; //剩余时间片
     void *scheduling_extra;    //调度器可自行扩展的信息
   
+    //栈空间
+    void *stack;
+    uint32 stack_size;
+
     //TODO: 补充其它的通用进程信息
 
     //通用的扩展信息部分
     void *info_extra;
 }ProcessInfo;
 
-int32 process_initialize(Process *proc, ProcessInfo *info);
-uint32 process_switch_to(Process *proc);
+Process *process_initialize(ProcessInfo *info);
+int32 process_switch_to(Process *proc);
 int32 process_get_info(Process *proc, ProcessInfo *pinfo);
 
 #endif
