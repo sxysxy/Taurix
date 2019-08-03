@@ -44,6 +44,11 @@ int32 arch_init_memory();
 int32 arch_init() {
     arch_init_memory();
     init_pic();
+    arch_init_clock();
+    arch_init_keyboard();
+    arch_init_storage();
+    arch_init_video();
+    arch_init_misc();
     init_idt();
     init_ints();
 
@@ -60,24 +65,29 @@ int32 arch_init_memory() {
 //初始化储存设备
 int32 arch_init_storage() {
 
+    return STATUS_SUCCESS;
 }
 
 //初始化时钟
-uint32 arch_init_clock() {
-
+int32 arch_init_clock() {
+    //交由进程调度器处理
+    return STATUS_SUCCESS;
 }
 
 //初始化键盘输入设备
 int32 arch_init_keyboard() {
-
+    set_irq_valid(PIC_IRQ_KEYBOARD, 1);
+    return STATUS_SUCCESS;
 }
 
 //初始化图形设备
 int32 arch_init_video() {
 
+    return STATUS_SUCCESS;
 }
 
 //杂项的初始化
 int32 arch_init_misc() {
 
+    return STATUS_SUCCESS;
 }

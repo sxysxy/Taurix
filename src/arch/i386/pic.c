@@ -35,10 +35,33 @@ int32 init_pic() {
     i386_nop3();
 
     //先屏蔽所有中断
-    ru_port_write8(I8259_M_DATA_PORT, 0xf9);
+    ru_port_write8(I8259_M_DATA_PORT, 0xfb);  //不屏蔽从8259
     i386_nop3();
     ru_port_write8(I8259_S_DATA_PORT, 0xff);
     i386_nop3();
 
     return STATUS_SUCCESS;
 }   
+
+void set_irq_valid(uint16 irq, int32 valid) {
+    if(irq >= 0 && irq < 8) {
+        uint8 mask = ru_port_read8(I8259_M_DATA_PORT);
+        if(valid) {
+            mask &= ~(1<<irq);
+        }else {
+            mask |= (1<<irq);
+        }
+        ru_port_write8(I8259_M_DATA_PORT, mask);
+        i386_nop3();
+    }else if(irq >= 8 && irq < 16) {
+        irq -= 8;
+        uint8 mask = ru_port_read8(I8259_S_DATA_PORT);
+        if(valid) {
+            mask &= ~(1<<irq);
+        }else {
+            mask |= (1<<irq);
+        }
+        ru_port_write8(I8259_S_DATA_PORT, mask);
+        i386_nop3();
+    }
+}

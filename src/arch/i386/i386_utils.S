@@ -4,7 +4,7 @@
 ;        date: 2019.07.30
 
 [bits 32]
-global i386_set_gdtr, i386_set_idtr
+global i386_set_gdtr, i386_set_idtr, i386_set_ldtr
 global i386_get_cr0, i386_set_cr0
 global i386_get_cr2, i386_set_cr2
 global i386_get_cr3, i386_set_cr3
@@ -25,6 +25,14 @@ i386_set_idtr:
     mov ax, [esp+4]
     mov [esp+6], ax
     lidt [esp+6]
+    ret
+
+;void i386_set_ldtr(uint16 selector)
+i386_set_ldtr:
+    mov eax, [esp+4]
+    shl eax, 3
+    mov [esp+4], eax
+    lldt [esp+4]
     ret
 
 i386_get_cr0:
@@ -65,10 +73,10 @@ i386_set_cr4:
 
 ;void i386_ltr(uint16 selector)
 i386_ltr:
-    mov eax, [ebp+4]
+    mov eax, [esp+4]
     shl eax, 3
-    mov [ebp+4], eax 
-    ltr [ebp+4]
+    mov [esp+4], eax 
+    ltr [esp+4]
     ret
 
 ;提供一个C语言函数，能够实现 jmp 段选择子:偏移

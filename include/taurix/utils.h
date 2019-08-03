@@ -54,7 +54,11 @@ typedef unsigned long long uint64;
 #define size_t uint32
 #endif
 
-//公用工具函数
+//公用工具函数/定义
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
+
 //stdarg 兼容
 typedef char *va_list;
 #define __va_rounded_size(type) (((sizeof(type) + sizeof(int) - 1) / sizeof(int)) * sizeof(int))

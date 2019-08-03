@@ -18,8 +18,6 @@ CSTART
 int32 arch_init();
 
 
-//不必要
-/* 
 //初始化内存（为高级内存管理做准备）
 int32 arch_init_memory();
 
@@ -37,8 +35,9 @@ int32 arch_init_video();
 
 //杂项的初始化
 int32 arch_init_misc();
-*/
+
+
+CEND
 
 #endif
 
-CEND

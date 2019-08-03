@@ -67,6 +67,15 @@ typedef struct tagTSS32 {
     uint32 io_permission;
 }TSS32;
 
+//context，这记录的是瞬间的状态（例如进程暂停，或是中断发生）
+typedef struct tagContext {
+    //TODO: 补充浮点寄存器!!! 重要
+
+    uint32 edi, esi, ebp, esp, ebx, edx, ecx, eax;  //ints_wrapper中pushad压入，这里结构体中跟pushad指令入栈顺序是反过来的
+    uint32 ds, es, fs, gs;                          //ints_wrapper中压入
+    uint32 eip, cs, eflags, esp0, ss0;              //cpu自动压入栈中，esp0, ss0为切换栈之前的esp与ss   
+}Context;
+
 extern GDTItem *g_gdt;
 extern IDTItem *g_idt;
 
@@ -156,7 +165,7 @@ extern IDTItem *g_idt;
 #define SELECTOR_INDEX_DATA32_USER        4
 #define FLAGS_GDT_DATA32_USER          (ACCESS_RW | SEL_P | SEL_BITS_32 | SEL_4K | SEL_STORAGE | DPL_RING3)
 
-//TSS 预留给TSS，理论上讲一个cpu核心使用一个
+//TSS 预留给TSS
 #define SELECTOR_INDEX_TSS0              5
 #define SELECTOR_INDEX_TSS1              6
 #define SELECTOR_INDEX_TSS2              7
@@ -175,6 +184,9 @@ extern IDTItem *g_idt;
 #define SELECTOR_INDEX_TSS15             20
 #define SELECTOR_INDEX_MAX               20
 #define SELECTOR_INDEX_TSS(n)            (SELECTOR_INDEX_TSS0 + n)
+
+#define SELECTOR_INDEX_LDT0              21
+#define SELECTOR_INDEX_LDT(n)            (SELECTOR_INDEX_LDT0 + n)
 
 //TSS32
 //读/执行,已访问,有效,系统段(TSS描述符)
@@ -196,6 +208,10 @@ extern IDTItem *g_idt;
     gdt_addr是gdt表的首地址
  */
 void i386_set_gdtr(uint16 limit, void *gdt_addr);
+
+/* 设ldtr
+ */
+void i386_set_ldtr(uint16 selector);
 
 /* 设置gdt项
  */
@@ -243,7 +259,6 @@ void i386_ltr(uint16 selector);
 void i386_jmp_sel(uint16 selector, uint32 offset);
 
 CEND
-
 
 //additional 
 #include <taurix/arch/i386/pic.h>

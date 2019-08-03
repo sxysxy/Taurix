@@ -51,31 +51,59 @@ int basic_mm_init() {
 }
 
 //暂时的代码，测试多任务
-#include <taurix/arch/i386/i386_utils.h>
-void test_long_jmp(void) {
-    ru_text_print("[ OK ] Long jump ok\n");
-    ru_kernel_suspend();
+int process1_main() {
+    int cnt = 0;
+    for(;;) {
+        cnt++;
+        if(cnt == 1000000) {
+            ru_text_print("A");
+            cnt = 0;
+        }
+    }
 }
 
-int process1_main() {
-    //ru_text_print("Process 1: Hello world\n");
-    for(;;); //这家伙在用户态也调用不了suspend省电一点地挂起，也没有实现进程sleep系统调用，就先这样吧。
+int process2_main() {
+    int cnt = 0;
+    for(;;) {
+        cnt++;
+        if(cnt == 1000000) {
+            ru_text_print("B");
+            cnt = 0;
+        }
+    }
 }
 
 void test_process() {
+    ProcessScheduler ps;
+    ps_initialize(&ps, 2);
+
     ProcessInfo pinfo;
+    ru_memset(&pinfo, 0, sizeof(pinfo));
+    //入口点
     pinfo.entry = process1_main;
     pinfo.pid = 1, pinfo.parent_id = 0;
     pinfo.priority = 20;
-    pinfo.stack = ru_malloc(0x10000);
-    pinfo.stack_size = 0x10000;
-    Process *proc1 = process_initialize(&pinfo);
-    process_switch_to(proc1);
+    //设置栈
+    pinfo.stack = ru_malloc(0x500);
+    pinfo.stack_size = 0x500;
+    //标记
+    pinfo.flags = PROCESS_PRESENT | PROCESS_PRIVILEGE_KERNEL;
+    ps_add_process(&ps, &pinfo);
+
+    pinfo.entry = process2_main;
+    pinfo.pid = 2, pinfo.parent_id = 0;
+    pinfo.priority = 40;    //是第一个进程的权重的2倍
+    pinfo.stack = ru_malloc(0x500);
+    pinfo.stack_size = 0x500;
+    ps_add_process(&ps, &pinfo);
+
+    ps_schedule(&ps, 10);  //10ms一个时间片，开始调度
+    ru_kernel_suspend(); 
 }
 
 void TaurixCMain() {
     hello();
-
+ 
     //初始化基本内存管理
     if(!basic_mm_init()) {
         char tmp[100];
@@ -97,7 +125,6 @@ void TaurixCMain() {
     
     //TODO: fixme: process 
     ru_enable_interrupt();
-    //i386_jmp_sel(1, test_long_jmp);  //OK
     test_process();
     ru_kernel_suspend();
 }
