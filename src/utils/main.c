@@ -58,7 +58,7 @@ void test_long_jmp(void) {
 }
 
 int process1_main() {
-    ru_text_print("Process 1: Hello world\n");
+    //ru_text_print("Process 1: Hello world\n");
     for(;;); //这家伙在用户态也调用不了suspend省电一点地挂起，也没有实现进程sleep系统调用，就先这样吧。
 }
 
@@ -95,10 +95,9 @@ void TaurixCMain() {
         ru_text_print("[ OK ] Initialize the architecture, TODO: Finish this module.\n");
     }
     
-    //TODO: fixme: all crash. keyboard, div 0, process 
+    //TODO: fixme: process 
     ru_enable_interrupt();
-    //int a = 3;
-    //int b = a / 0;
-    //test_process();
+    //i386_jmp_sel(1, test_long_jmp);  //OK
+    test_process();
     ru_kernel_suspend();
 }

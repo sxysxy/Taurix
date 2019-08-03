@@ -33,8 +33,9 @@ Process *process_initialize(ProcessInfo *info) {
 int32 process_switch_to(Process *proc) {
     //当前cpu对应的tss选择子
     uint32 selector = SELECTOR_INDEX_TSS(get_cpu_index()); 
-    i386_set_gdt_item(g_gdt + selector, (uint32)&proc->tss, TSS32_LIMIT, FLAGS_TSS32);
-    i386_ltr(selector);
+    i386_set_gdt_item(g_gdt + selector, (uint32)&proc->tss, TSS32_LIMIT, 0x89 /* | FLAGS_TSS32 */);
+    //i386_ltr(selector);
+    //asm("ltr 40");
     /* 
     proc->tss.eip = (uint32)proc->info.entry;
     proc->tss.eflags = 0x00000202u;   
@@ -42,7 +43,7 @@ int32 process_switch_to(Process *proc) {
     proc->tss.cs = SELECTOR_INDEX_CODE32_USER * 8;
     proc->tss.ds = proc->tss.es = proc->tss.fs = proc->tss.gs = SELECTOR_INDEX_DATA32_USER * 8;
     */
-    //i386_jmp_sel(selector, 0);
+    i386_jmp_sel(selector, 0);
     return STATUS_SUCCESS;
 }
 

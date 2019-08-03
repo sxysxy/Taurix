@@ -47,9 +47,8 @@ typedef struct tagIDTItem {
     uint8 reserved;
 
     /*  8位的flags:
-        type(0-2), D(3), 0(4), DPL(5-6), P(7)
+        type(0-3), S(4)=0, DPL(5-6), P(7)
         type指定门类型， 任务门，中断门，陷阱门
-        D=1 32位, D=0 16位
         DPL指定描述符的特权级(取值0,1,2,3)
         P指定内存中是否存在(1,0)
     */
@@ -94,6 +93,15 @@ extern IDTItem *g_idt;
 
 //代码段，一致段
 #define ACCESS_FIT          0x04
+
+//选择子可用的286TSS
+#define SEL_286TSS          0x01
+
+//选择子 可用的386TSS
+#define SEL_386TSS          ((1<<3) | (SEL_286TSS))
+
+//指向LDT
+#define SEL_LDT             0x02
 
 //选择子类型，存储段
 #define SEL_STORAGE         (1<<4)
@@ -170,13 +178,13 @@ extern IDTItem *g_idt;
 
 //TSS32
 //读/执行,已访问,有效,系统段(TSS描述符)
-#define FLAGS_TSS32                    (ACCESS_EXECO | ACCESS_ACCESS | SEL_P | SEL_SYS)  
+#define FLAGS_TSS32                    (SEL_P | SEL_BITS_32 | SEL_386TSS)
 //(sizeof(TSS32)-1)
 #define TSS32_LIMIT                    (sizeof(TSS32)-1)
 
 //INTGATE
 //读/执行,一致代码段,有效,系统段(门描述符)
-#define FLAGS_INTGATE                  (ACCESS_REXEC | ACCESS_FIT | SEL_P | SEL_SYS)
+#define FLAGS_INTGATE                  (GATE_INT | GATE_BITS_32 | GATE_P)
 
 //获得当前活动的cpu的编号
 //TODO: 完成 实现！ 重要

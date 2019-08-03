@@ -13,6 +13,9 @@ IDTItem *g_idt = 0;
 
 int32 init_gdt() {
     g_gdt = ru_malloc(sizeof(GDTItem) * GDT_MAX_NUMBER);
+    if((uint32)g_gdt % 8) 
+        g_gdt = (GDTItem *)(((uint32)g_gdt) + 4);
+    ru_memset(g_gdt, 0, sizeof(GDT_MAX_NUMBER) * GDT_MAX_NUMBER);
     i386_set_gdt_item(g_gdt + 0, 0, 0, 0);
     i386_set_gdt_item(g_gdt + SELECTOR_INDEX_CODE32_KERNEL, 0, 0xffffffffu, FLAGS_GDT_CODE32_KERNEL);
     i386_set_gdt_item(g_gdt + SELECTOR_INDEX_DATA32_KERNEL, 0, 0xffffffffu, FLAGS_GDT_DATA32_KERNEL);
@@ -25,7 +28,10 @@ int32 init_gdt() {
 }
 
 int32 init_idt() {
-    g_idt = ru_malloc(sizeof(IDTItem) * IDT_MAX_NUMBER);
+    g_idt = ru_malloc(sizeof(IDTItem) * (IDT_MAX_NUMBER)+1);
+    if((uint32)g_idt % 8)
+        g_idt = (IDTItem *)(((uint32)g_idt) + 4);  //align 8
+    ru_memset(g_idt, 0, sizeof(IDT_MAX_NUMBER) * IDT_MAX_NUMBER);
     i386_set_idtr(sizeof(IDTItem) * IDT_MAX_NUMBER - 1, g_idt);
     return STATUS_SUCCESS;
 }
