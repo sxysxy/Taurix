@@ -73,16 +73,28 @@ int process2_main() {
     }
 }
 
+int process3_main() {
+    int cnt = 0;
+    for(;;) {
+        cnt++;
+        if(cnt == 1000000) {
+            ru_text_print("C");
+            cnt = 0;
+        }
+    }
+}
+
+
 void test_process() {
     ProcessScheduler ps;
-    ps_initialize(&ps, 2);
+    ps_initialize(&ps, 3);
 
     ProcessInfo pinfo;
     ru_memset(&pinfo, 0, sizeof(pinfo));
     //入口点
     pinfo.entry = process1_main;
     pinfo.pid = 1, pinfo.parent_id = 0;
-    pinfo.priority = 20;
+    pinfo.priority = 40;
     //设置栈
     pinfo.stack = ru_malloc(0x500);
     pinfo.stack_size = 0x500;
@@ -92,7 +104,14 @@ void test_process() {
 
     pinfo.entry = process2_main;
     pinfo.pid = 2, pinfo.parent_id = 0;
-    pinfo.priority = 40;    //是第一个进程的权重的2倍
+    pinfo.priority = 30;    //是第一个进程的权重的2倍
+    pinfo.stack = ru_malloc(0x500);
+    pinfo.stack_size = 0x500;
+    ps_add_process(&ps, &pinfo);
+
+    pinfo.entry = process3_main;
+    pinfo.pid = 3, pinfo.parent_id = 0;
+    pinfo.priority = 20;   
     pinfo.stack = ru_malloc(0x500);
     pinfo.stack_size = 0x500;
     ps_add_process(&ps, &pinfo);

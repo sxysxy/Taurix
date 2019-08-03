@@ -65,8 +65,18 @@ int32 ru_text_putchar(int ch) {
         cursor_col = 0;
         if(cursor_row >= 25) {
             ru_disable_interrupt();
-            if(cursor_row > 200)
-                cursor_row = 25;
+            
+            if(cursor_row > ROWS * 8) {  //写了8页，清空重新写
+                cursor_row = 0;
+                ru_port_write8(0x3d4, 0x0d);
+                ru_port_write8(0x3d5, 0);
+                ru_port_write8(0x3d4, 0x0c);
+                ru_port_write8(0x3d5, 0);
+                ru_enable_interrupt();
+                ru_memset(vram, 0, sizeof(TextChar) * COLUMNS * ROWS * 8);
+                return ru_text_putchar(ch);
+            }
+
             uint32 pos = (80*(cursor_row-25));
 
             ru_port_write8(0x3d4, 0x0d);
@@ -91,13 +101,6 @@ void ru_text_print(const char *text) {
     while(*text) {
         ru_text_putchar(*text++);
     }
-}
-
-/*ru_text_printf
- */
-int32 ru_text_printf(const char *format, ...) {
-    //TODO
-    return 0;
 }
 
 /*ru_text_clear 
