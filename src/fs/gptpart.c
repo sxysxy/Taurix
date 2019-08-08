@@ -82,6 +82,14 @@ void gpt_remake_crc32(GPTPartTool *gpt) {
     }
 }
 
+#ifdef _WIN32
+//Taurix patch: 在windows上使用mingw编译的时候使用原本的gpt_make_part_table会报错undefined reference to __chkstk_ms
+//这里替换成如下函数通过编译
+int gpt_make_part_table(struct tagPartTool *pt, uint64 disk_size_in_byte) {
+    return ERROR_TFS_NO_IMPLEMENT;
+}
+
+#else 
 int gpt_make_part_table(struct tagPartTool *pt, uint64 disk_size_in_byte) {
     GPTPartTool *gpt = (GPTPartTool *)pt;
     //   
@@ -160,6 +168,7 @@ int gpt_make_part_table(struct tagPartTool *pt, uint64 disk_size_in_byte) {
     gpt->is_valid_gpt_disk = 1; //设为合法的gpt磁盘
     return STATUS_SUCCESS;
 }
+#endif
 
 unsigned int gpt_get_part_count(PartTool *pt) {
     GPTPartTool *gpt = (GPTPartTool *)pt;

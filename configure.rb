@@ -5,9 +5,18 @@
 #     date: 2019.07.28
 
 require 'json'
+require 'fileutils'
 
 SETTINGS_FILENAME = "taurix-settings-final.json"
 DIR_ROOT = Dir.pwd
+
+if !File.exist?(SETTINGS_FILENAME)
+    puts("#{SETTINGS_FILENAME} not found, run settings first")
+    if !system("python taurix-settings-gui.json")
+        puts("Failed to run settings, using default parameters");
+        FileUtils.cp("taurix-settings.json", SETTINGS_FILENAME)
+    end
+end
 
 #加载设置
 ->{STDERR.puts("#{SETTINGS_FILENAME} not found. Please run taurix-settings-gui.py to generate it."); exit 1}[] unless File.exist?(SETTINGS_FILENAME)
@@ -28,6 +37,10 @@ end
 $arch = "i386" if !$arch
 if !AVALIABLE_ARCH.include?($arch)
     puts("Unsupported architecture: #{$arch}")
+end
+
+def is_windows 
+    RUBY_PLATFORM =~ /mingw/ || RUBY_PLATFORM =~ /mswin/
 end
 
 #------------源文件和头文件的目录-------
@@ -84,7 +97,7 @@ def scan_file_dependence(file, recoder)
     recoder[file] = []
     fp.each_line do |line|
         if C_CXX_EXTNAMES.include?(ext)
-            /#include\s*[<](.+)[>]/.match(line)
+            /#include\s*[<](.+)[>]/.match(line.force_encoding("utf-8"))
             recoder[file].push(File.join("./include", $1)) if $1
         #else ASM_EXTNAMES.include?(ext)
         end
@@ -137,8 +150,13 @@ end
 
 MAKEFILE = File.open("Makefile", "w")
 BASE_ADDR = SETTINGS["Architecture"][$arch]["base address"] || 0x10000
-MAKEFILE.print("Taurix : #{OBJECTS.join(" ")}\n\t#{LINK} #{OBJECTS.join(" ")} -o Taurix #{(RUBY_PLATFORM =~ /darwin/) ? "-image_base #{BASE_ADDR}" : "-Ttext=#{BASE_ADDR}"} #{(RUBY_PLATFORM =~ /darwin/) ? "-e start" : "--entry=start"} #{LINK_FLAGS_COMMON}\n")
-
+MAKEFILE.print("Taurix : #{OBJECTS.join(" ")}\n\t#{LINK} #{OBJECTS.join(" ")} -o Taurix#{(is_windows)? ".o":"" } #{(RUBY_PLATFORM =~ /darwin/) ? "-image_base #{BASE_ADDR}" : "-Ttext=#{BASE_ADDR}"} #{(RUBY_PLATFORM =~ /darwin/) ? "-e start" : "--entry=start"} #{LINK_FLAGS_COMMON}\n")
+if is_windows #用objcopy转换格式 
+    case $arch 
+    when /i386/
+        MAKEFILE.print("\tobjcopy -O elf32-i386 Taurix.o Taurix\n")
+    end
+end
 SOURCES.each do |src, dep|
     obj = src_obj_file(src)
     MAKEFILE.print("#{obj} : #{src} #{dep.join(" ")}\n\t")
@@ -153,10 +171,10 @@ end
 
 #制成由grub引导的硬盘镜像文件的规则
 MAKEFILE.print("image/Taurix.img: Taurix\n\t")
-MAKEFILE.print("ruby image/build_grub_booted.rb\n")
+MAKEFILE.print("ruby ./image/build_grub_booted.rb\n")
 
 #别名 Image <-> Taurix.img
-MAKEFILE.print("Image:\n\tmake image/Taurix.img\n")
+MAKEFILE.print("Image: image/Taurix.img\n")
 
 #清除规则
 MAKEFILE.print("clean:\n\t")
@@ -167,7 +185,26 @@ MAKEFILE.print("#{RM} image/Taurix.img\n")
 MAKEFILE.close
 
 #生成使用qemu执行的脚本
-QEMU_SCRIPT =<<AAAA
+if is_windows
+
+    QEMU_SCRIPT =<<AAAA
+#encoding: utf-8
+if system("make Image")
+    system("qemu-system-#{$arch} image/Taurix.img %s")
+end
+AAAA
+
+    File.open("QemuRun.rb", "w") do |f|
+        f.print(sprintf(QEMU_SCRIPT, ""))
+    end
+    
+    File.open("QemuDebug.rb", "w") do |f|
+        f.print(sprintf(QEMU_SCRIPT, "-S -s"))
+    end
+
+else  
+
+    QEMU_SCRIPT =<<AAAA
 #!/usr/bin/sh
 make Image
 if [ $? -eq 0 ]; then
@@ -175,12 +212,14 @@ if [ $? -eq 0 ]; then
 fi    
 AAAA
 
-QEMURUN = File.open("QemuRun.sh", "w") do |f|
-    f.print(sprintf(QEMU_SCRIPT, ""))
-end
-system("chmod +x QemuRun.sh")
+    File.open("QemuRun.sh", "w") do |f|
+        f.print(sprintf(QEMU_SCRIPT, ""))
+    end
+    system("chmod +x QemuRun.sh") 
 
-QEMUDEBUG = File.open("QemuDebug.sh", "w") do |f|
-    f.print(sprintf(QEMU_SCRIPT, "-S -s"))
+    File.open("QemuDebug.sh", "w") do |f|
+        f.print(sprintf(QEMU_SCRIPT, "-S -s"))
+    end
+    system("chmod +x QemuDebug.sh") 
+
 end
-system("chmod +x QemuDebug.sh")

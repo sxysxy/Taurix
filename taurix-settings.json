@@ -1,6 +1,7 @@
 {
     "Architecture" : {
         "i386" : {
+
             "__final__" : "", 
 
             "boot from grub" : true,

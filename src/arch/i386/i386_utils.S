@@ -107,3 +107,9 @@ SELECTOR_INDEX_DATA32_KERNEL equ 16
     jmp SELECTOR_INDEX_CODE32_KERNEL:reload_selectors_ok
 reload_selectors_ok: 
     ret
+
+
+;fix mingw compile error
+global __chkstk_ms
+__chkstk_ms:
+    ret

@@ -10,6 +10,10 @@ extern "C" {
 
 #include "tfstools.h"
 
+#ifndef _MSC_VER  //for mingw 
+#define _MSC_VER _WIN32
+#endif
+
 #ifdef _MSC_VER
 #pragma pack(push, 1)
 struct tagFAT32Header {
