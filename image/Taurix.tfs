@@ -1,0 +1,13 @@
+#!/bin/tfstools
+open Taurix.img
+
+# Select the EFI Partition
+select 0
+
+#copy grub.cfg and Taruix 
+enter_part FAT32
+push ../Taurix Taurix
+cd GRUB
+push grub.cfg grub.cfg
+close
+exit 0

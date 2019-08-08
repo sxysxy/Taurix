@@ -71,12 +71,16 @@ int ru_sprintf_s(char *buf, size_t max_size, const char *format, ...);     //->s
 
 //stdlib.h
 void *ru_memset(void *base, uint8 data, size_t size);   //->src/utils/utils.c
-void *ru_memcpy(void *dest, void *src, size_t size);
+void *ru_memcpy(void *dest, const void *src, size_t size);
 
 //string.h
 char *ru_strcpy(char *dest, const char *src);       //->src/utils/utils.c
 int ru_strlen(const char *str);
 int ru_strcmp(const char *a, const char *b);
+int ru_strncmp(const char *a, const char *b, size_t size);
+char *ru_strncpy(char *dest, const char *src, size_t size);
+int ru_memcmp(const void *a, const void *b, size_t size);
+char *ru_strcat(char *dest, const char *src);
 
 //math
 //整数开根，返回根号x下取整
@@ -109,7 +113,6 @@ int32 ru_detect_available_memory(size_t min_size, _OUT void **baseaddr, _OUT siz
 int32 ru_text_init();
 int32 ru_text_putchar(int ch); //->src/平台/arch_utils(n).c 平台相关的函数
 void ru_text_print(const char *text);
-int32 ru_text_printf(const char *format, ...);
 void ru_text_set_color(uint32 color);  //设置文本的颜色
 void ru_text_set_cursor(int row, int col);
 int32 ru_text_get_colmns();        //获得文本模式下文字的 列数（宽度）

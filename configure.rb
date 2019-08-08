@@ -1,4 +1,5 @@
-#!/usr/bin/ruby
+#!/bin/ruby
+#encoding: utf-8
 # Generate makefile from settings for building taruix
 #   author: hfcloud(sxysxygm@gmail.com) 
 #     date: 2019.07.28
@@ -151,19 +152,17 @@ SOURCES.each do |src, dep|
 end
 
 #制成由grub引导的硬盘镜像文件的规则
-MAKEFILE.print("Taurix.img: Taurix\n\t")
-MAKEFILE.print("cp Taurix ./TaurixFS/boot\n\t")
-MAKEFILE.print("grub-mkrescue -o Taurix.img TaurixFS\n")
+MAKEFILE.print("image/Taurix.img: Taurix\n\t")
+MAKEFILE.print("ruby image/build_grub_booted.rb\n")
 
 #别名 Image <-> Taurix.img
-MAKEFILE.print("Image:\n\tmake Taurix.img\n")
+MAKEFILE.print("Image:\n\tmake image/Taurix.img\n")
 
 #清除规则
 MAKEFILE.print("clean:\n\t")
 MAKEFILE.print("#{RM} *.o\n\t")
 MAKEFILE.print("#{RM} Taurix\n\t")
-MAKEFILE.print("#{RM} Taurix.img\n\t")
-MAKEFILE.print("#{RM} ./TaurixFS/boot/Taurix\n")
+MAKEFILE.print("#{RM} image/Taurix.img\n")
 
 MAKEFILE.close
 
@@ -172,7 +171,7 @@ QEMU_SCRIPT =<<AAAA
 #!/usr/bin/sh
 make Image
 if [ $? -eq 0 ]; then
-    env LANG=en_US.UTF8 qemu-system-#{$arch} Taurix.img %s
+    env LANG=en_US.UTF8 qemu-system-#{$arch} image/Taurix.img %s
 fi    
 AAAA
 

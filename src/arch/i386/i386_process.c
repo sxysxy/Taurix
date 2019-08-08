@@ -101,7 +101,7 @@ void clock_int_handler(Context *context) {
 }
 
 //开始进行调度, 使用第一个加入调度器的进程作为第一个进程，duration_per_slice指定了每个时间片的时间（单位：ms）
-int32 ps_schedule(ProcessScheduler *ps, uint32 duration_per_slice) {
+int32 ps_schedule(ProcessScheduler *ps, uint32 duration_per_slice) { 
     ru_disable_interrupt();
     //
     uint16 freq = 1000 / duration_per_slice;
@@ -162,6 +162,7 @@ void ps_do_auto_schedule(ProcessScheduler *ps, Context *context) {  //时间片�
             ru_memcpy(context, &perfer_proc->context, sizeof(Context));
         else   //同特权级任务切换，不需要恢复堆栈
             ru_memcpy(context, &perfer_proc->context, sizeof(Context) - 8);  //no esp0, ss0
+        
     } else {  //依然没有进程可以调度，挂起
         ru_text_set_color(VGA_TEXT_RED);
         ru_text_print("[ Halt ] No process to switch\n");

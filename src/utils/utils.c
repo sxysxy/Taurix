@@ -11,12 +11,7 @@
  */
 void ru_dummy() {}
 
-/* ru_sprintf
- */
-int ru_sprintf(char *buf, const char *format, ...) {
-    //TODO: 
-    return 0;
-}
+//string.h
 
 /* ru_memset
  */
@@ -28,18 +23,18 @@ void *ru_memset(void *base, uint8 data, size_t size) {
 
 /* ru_memcpy
  */
-void *ru_memcpy(void *dest, void *src, size_t size) {
+void *ru_memcpy(void *dest, const void *src, size_t size) {
     uint8 *pdest = (uint8 *)dest, *psrc = (uint8*)src;
     while(size--) 
         *pdest++ = *psrc++;
     return dest;
 }
 
-//string.h
 char *ru_strcpy(char *dest, const char *src) {
+    char *ori_dest = dest;
     while(*src) *dest++ = *src++;
     *dest = 0;
-    return dest;
+    return ori_dest;
 }
 
 int ru_strlen(const char *str) {
@@ -52,6 +47,39 @@ int ru_strcmp(const char *a, const char *b) {
     while((*a && *b) && *a == *b)
         a++, b++;
     return *a - *b; 
+}
+
+int ru_strncmp(const char *a, const char *b, size_t size) {
+    while(size-- && (*a && *b) && *a == *b)
+        a++, b++;
+    return *a - *b;
+}
+char* ru_strncpy(char *dest, const char *src, size_t size) {
+    char *ori_dest = dest;
+    while(size-- && *src) {
+        *dest++ = *src++;
+    }
+    *dest = 0;
+    return ori_dest;
+}
+int ru_memcmp(const void *a, const void *b, size_t size) {
+    const char *pa = (const char *)a;
+    const char *pb = (const char *)b;
+    while(size--) {
+        char diff = *pa - *pb;
+        if(diff) return diff;
+        *pa++, *pb++;
+    }
+    return 0;
+}
+char *ru_strcat(char *dest, const char *src) {
+    char *ori_dest = dest;
+
+    int len = ru_strlen(dest);
+    for(dest += len; *src; ) 
+        *dest++ = *src++;
+    *dest = 0;
+    return ori_dest; 
 }
 
 /* ru_isqrt

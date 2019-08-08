@@ -1,5 +1,5 @@
-_CC_FLAGS_COMMON.push("-m32")
-_CXX_FLAGS_COMMON.push("-m32")
+_CC_FLAGS_COMMON.push("-m32 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast")
+_CXX_FLAGS_COMMON.push("-m32 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast")
 _ASM_FLAGS_COMMON.push("-f elf")
 
 if RUBY_PLATFORM =~ /darwin/ #fuck OSX CLANG
