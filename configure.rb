@@ -12,7 +12,7 @@ DIR_ROOT = Dir.pwd
 
 if !File.exist?(SETTINGS_FILENAME)
     puts("#{SETTINGS_FILENAME} not found, run settings first")
-    if !system("python taurix-settings-gui.json")
+    if !system("python taurix-settings-gui.py")
         puts("Failed to run settings, using default parameters");
         FileUtils.cp("taurix-settings.json", SETTINGS_FILENAME)
     end
@@ -185,41 +185,21 @@ MAKEFILE.print("#{RM} image/Taurix.img\n")
 MAKEFILE.close
 
 #生成使用qemu执行的脚本
-if is_windows
-
-    QEMU_SCRIPT =<<AAAA
+QEMU_SCRIPT =<<AAAA
+#!/bin/ruby
 #encoding: utf-8
 if system("make Image")
     system("qemu-system-#{$arch} image/Taurix.img %s")
 end
 AAAA
 
-    File.open("QemuRun.rb", "w") do |f|
-        f.print(sprintf(QEMU_SCRIPT, ""))
-    end
-    
-    File.open("QemuDebug.rb", "w") do |f|
-        f.print(sprintf(QEMU_SCRIPT, "-S -s"))
-    end
-
-else  
-
-    QEMU_SCRIPT =<<AAAA
-#!/usr/bin/sh
-make Image
-if [ $? -eq 0 ]; then
-    env LANG=en_US.UTF8 qemu-system-#{$arch} image/Taurix.img %s
-fi    
-AAAA
-
-    File.open("QemuRun.sh", "w") do |f|
-        f.print(sprintf(QEMU_SCRIPT, ""))
-    end
-    system("chmod +x QemuRun.sh") 
-
-    File.open("QemuDebug.sh", "w") do |f|
-        f.print(sprintf(QEMU_SCRIPT, "-S -s"))
-    end
-    system("chmod +x QemuDebug.sh") 
-
+File.open("QemuRun.rb", "w") do |f|
+    f.print(sprintf(QEMU_SCRIPT, ""))
 end
+system("chmod +x QemuRun.rb") if !is_windows    
+
+File.open("QemuDebug.rb", "w") do |f|
+    f.print(sprintf(QEMU_SCRIPT, "-S -s"))
+end  
+system("chmod +x QemuDebug.rb") if !is_windows
+puts("Makefile Generated")
