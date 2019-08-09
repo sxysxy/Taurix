@@ -1,15 +1,5 @@
 #include "gptpart.h"
 
-//为啥mac上打不上ru_memset的补丁？
-#ifndef memset   
-static void *memset(void *base, uint8 data, size_t size) {
-    for(uint8 *ptr = base; size; size--, ptr++)
-        *ptr = data;
-    return base;
-}
-#endif
-
-
 unsigned int crc32(const void *pdata, unsigned int size)
 {
     const unsigned char *data = (const unsigned char *)pdata;
@@ -155,7 +145,8 @@ int gpt_make_part_table(struct tagPartTool *pt, uint64 disk_size_in_byte) {
             gpt->pt.io.write_lba(cur_lba, cur_lba, &gh);
             cur_lba++;
 
-            char zeros[512] = {0};
+            char zeros[512];
+            memset(zeros, 0, sizeof(zeros));
             for(int i = 2; i < 34; i++) {         //空表项
                 gpt->pt.io.write_lba(cur_lba, cur_lba, zeros);
                 cur_lba++;
