@@ -1,8 +1,14 @@
 #include "gptpart.h"
 
-#ifndef memset 
-#define memset ru_memset
+//为啥mac上打不上ru_memset的补丁？
+#ifndef memset   
+static void *memset(void *base, uint8 data, size_t size) {
+    for(uint8 *ptr = base; size; size--, ptr++)
+        *ptr = data;
+    return base;
+}
 #endif
+
 
 unsigned int crc32(const void *pdata, unsigned int size)
 {
