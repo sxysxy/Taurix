@@ -7,13 +7,14 @@ else
 end
 
 #禁止导出符号前加下划线
-if is_windows || is_osx
+if is_windows
     _CC_FLAGS_COMMON.push "-fno-leading-underscore"
     _CXX_FLAGS_COMMON.push "-fno-leading-underscore"
 end
 
-if RUBY_PLATFORM =~ /darwin/ #fuck OSX CLANG
+if is_osx #fuck OSX CLANG
     _LINK_FLAGS_COMMON.push("-arch i386")
+    _LINK_FLAGS_COMMON.push("-lSystem")
 else 
     if !is_windows  #*nix
         _LINK_FLAGS_COMMON.push("-m elf_i386")
