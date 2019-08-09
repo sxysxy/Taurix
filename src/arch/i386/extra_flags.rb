@@ -14,7 +14,7 @@ end
 
 if is_osx #fuck OSX CLANG
     _LINK_FLAGS_COMMON.push("-arch i386")
-    _LINK_FLAGS_COMMON.push("-lSystem")
+    _LINK_FLAGS_COMMON.push("-static")
 else 
     if !is_windows  #*nix
         _LINK_FLAGS_COMMON.push("-m elf_i386")
