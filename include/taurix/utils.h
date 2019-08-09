@@ -59,6 +59,8 @@ typedef unsigned long long uint64;
 #define NULL ((void *)0)
 #endif
 
+#define EXPORT_SYMBOL(x) asm(#x)
+
 //stdarg 兼容
 typedef char *va_list;
 #define __va_rounded_size(type) (((sizeof(type) + sizeof(int) - 1) / sizeof(int)) * sizeof(int))
@@ -70,8 +72,8 @@ typedef char *va_list;
 int ru_sprintf_s(char *buf, size_t max_size, const char *format, ...);     //->src/utils/utils.c
 
 //stdlib.h
-void *ru_memset(void *base, uint8 data, size_t size);   //->src/utils/utils.c
-void *ru_memcpy(void *dest, const void *src, size_t size);
+void *ru_memset(void *base, uint8 data, size_t size) EXPORT_SYMBOL(ru_memset);   //->src/utils/utils.c
+void *ru_memcpy(void *dest, const void *src, size_t size) EXPORT_SYMBOL(ru_memcpy);
 
 //string.h
 char *ru_strcpy(char *dest, const char *src);       //->src/utils/utils.c
@@ -92,18 +94,19 @@ void ru_dummy();
 //系统控制，下面的函数一般都较为底层，由平台对应的汇编语言实现
 //->src/平台/arch_utils.S
 //端口IO， 写
-void ru_port_write8(uint32 port, uint8 data); 
-void ru_port_write16(uint32 port, uint16 data);
-void ru_port_write32(uint32 port, uint32 data);
+
+void ru_port_write8(uint32 port, uint8 data) EXPORT_SYMBOL(ru_port_write8); 
+void ru_port_write16(uint32 port, uint16 data) EXPORT_SYMBOL(ru_port_write16);
+void ru_port_write32(uint32 port, uint32 data) EXPORT_SYMBOL(ru_port_write32);
 
 //端口IO, 读
-uint8 ru_port_read8(uint32 port);
-uint16 ru_port_read16(uint32 port);
-uint32 ru_port_read32(uint32 port);
+uint8 ru_port_read8(uint32 port) EXPORT_SYMBOL(ru_port_read8);
+uint16 ru_port_read16(uint32 port) EXPORT_SYMBOL(ru_port_read16);
+uint32 ru_port_read32(uint32 port) EXPORT_SYMBOL(ru_port_read32);
 
 //中断开关控制
-void ru_enable_interrupt();   //关中断
-void ru_disable_interrupt();  //开中断
+void ru_enable_interrupt() EXPORT_SYMBOL(ru_enable_interrupt);   //关中断
+void ru_disable_interrupt() EXPORT_SYMBOL(ru_disable_interrupt);  //开中断
 
 //探测一块满足min_size大小的可用的内存 ->src/arch/$arch/arch_utils(n).c
 //如果不满足，则会将*baseaddr, *actual_sizeqingling清零
@@ -128,7 +131,7 @@ void ru_text_clear();             //文本模式清屏
 #define VGA_TEXT_WHITE   (VGA_TEXT_BLUE + VGA_TEXT_GREEN + VGA_TEXT_RED) 
 
 //遇到致命错误时的挂起
-void ru_kernel_suspend();  //src->/平台/arch_utils(n).c
+void ru_kernel_suspend() EXPORT_SYMBOL(ru_kernel_suspend);  //src->/平台/arch_utils(n).c
 
 //---------------OOP系统--------------
 //TODO: 使用消息机制的话，虚函数表已经没有用了，消息响应的方式更加灵活。

@@ -119,7 +119,7 @@ void test_process() {
     ps_schedule(&ps, 10);  //10ms一个时间片，开始调度
     ru_kernel_suspend(); 
 }
-
+void TaurixCMain() EXPORT_SYMBOL(TaurixCMain);
 void TaurixCMain() {
     hello();
  

@@ -1,6 +1,10 @@
 _CC_FLAGS_COMMON.push("-m32 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast")
 _CXX_FLAGS_COMMON.push("-m32 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast")
-_ASM_FLAGS_COMMON.push("-f elf")
+if is_osx
+    _ASM_FLAGS_COMMON.push("-f macho32")
+else 
+    _ASM_FLAGS_COMMON.push("-f elf")
+end
 
 #禁止导出符号前加下划线
 if is_windows || is_osx

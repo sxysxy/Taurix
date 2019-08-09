@@ -207,11 +207,11 @@ extern IDTItem *g_idt;
     limit是gdt表最后一个字节的地址
     gdt_addr是gdt表的首地址
  */
-void i386_set_gdtr(uint16 limit, void *gdt_addr);
+void i386_set_gdtr(uint16 limit, void *gdt_addr) EXPORT_SYMBOL(i386_set_gdtr);
 
 /* 设ldtr
  */
-void i386_set_ldtr(uint16 selector);
+void i386_set_ldtr(uint16 selector) EXPORT_SYMBOL(i386_set_ldtr);
 
 /* 设置gdt项
  */
@@ -221,42 +221,42 @@ void i386_set_gdt_item(GDTItem *item, uint32 base, uint32 limit, uint32 flags);
     limit是idt表最后一个字节的地址
     gdt_addr是idt表的首地址
  */
-void i386_set_idtr(uint16 limit, void *idt_addr);
+void i386_set_idtr(uint16 limit, void *idt_addr) EXPORT_SYMBOL(i386_set_idtr);
 
 /* 设置idt项
  */
 void i386_set_idt_item(IDTItem *item, uint32 selector, uint32 offset, uint32 flags);
 
 //读取cr0寄存器
-uint32 i386_get_cr0();
+uint32 i386_get_cr0() EXPORT_SYMBOL(i386_get_cr0);
 
 //设置cr0寄存器值
-void i386_set_cr0(uint32 cr0);
+void i386_set_cr0(uint32 cr0) EXPORT_SYMBOL(i386_set_cr0);
 
 //读取cr2寄存器
-uint32 i386_get_cr2();
+uint32 i386_get_cr2() EXPORT_SYMBOL(i386_get_cr2);
 
 //设置cr2寄存器值
-void i386_set_cr2(uint32 cr2);
+void i386_set_cr2(uint32 cr2) EXPORT_SYMBOL(i386_set_cr2);
 
 //读取cr3寄存器
-uint32 i386_get_cr3();
+uint32 i386_get_cr3() EXPORT_SYMBOL(i386_get_cr3);
 
 //设置cr3寄存器值
-void i386_set_cr3(uint32 cr3);
+void i386_set_cr3(uint32 cr3) EXPORT_SYMBOL(i386_set_cr3);
 
 //读取cr4寄存器
-uint32 i386_get_cr4();
+uint32 i386_get_cr4() EXPORT_SYMBOL(i386_get_cr4);
 
 //设置cr4寄存器值
-void i386_set_cr4(uint32 cr4);
+void i386_set_cr4(uint32 cr4) EXPORT_SYMBOL(i386_set_cr4);
 
 //三个nop用于极短暂的延时
 #define i386_nop3(...) __asm__("nop\n\tnop\n\tnop\n\t");
 
-void i386_ltr(uint16 selector);
+void i386_ltr(uint16 selector) EXPORT_SYMBOL(i386_ltr);
 
-void i386_jmp_sel(uint16 selector, uint32 offset);
+void i386_jmp_sel(uint16 selector, uint32 offset) EXPORT_SYMBOL(i386_jmp_sel);
 
 CEND
 

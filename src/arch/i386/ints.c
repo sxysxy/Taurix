@@ -6,7 +6,8 @@
 
 #include <taurix/arch/i386/i386_utils.h>
 
-void entry_keyboard_int_handler();
+void entry_keyboard_int_handler() EXPORT_SYMBOL(entry_keyboard_int_handler);
+void keyboard_int_handler(Context *Context) EXPORT_SYMBOL(keyboard_int_handler);
 void keyboard_int_handler(Context *context) {
     static const char *scan_code_table[] = {
         "0x00", "Esc", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Backspace", "Tab", 
@@ -35,7 +36,8 @@ int32 init_irq_ints() {
     return STATUS_SUCCESS;
 }
 
-#define def_handler_func(fname, excp) void entry_##fname(); \
+#define def_handler_func(fname, excp) void entry_##fname() EXPORT_SYMBOL(entry_##fname); \
+void fname(Context *context) EXPORT_SYMBOL(fname); \
 void fname(Context *context) {     \
     ru_text_set_color(VGA_TEXT_RED);                     \
     ru_text_print(excp); \

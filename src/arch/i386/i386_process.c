@@ -55,10 +55,10 @@ int32 process_initialize(Process *proc, ProcessInfo *info) {
     return STATUS_SUCCESS;
 }   
 
+void simulate_iret(Context *context) EXPORT_SYMBOL(simulate_iret);
 int32 process_switch_to(Process *target, uint32 flags) {
     //自力更生，丰衣足食，破TSS一点都不好用，软件方法实现进程切换就完事了
     if(flags & PROCESS_SCHEDULE_FROM_REQ) {    //软件请求进入调度或未有当前运行中进程
-        void simulate_iret(Context *context);
         simulate_iret(&target->context);
         return STATUS_SUCCESS;
     } 
@@ -93,8 +93,9 @@ int32 ps_add_process(ProcessScheduler *ps, ProcessInfo *info) {
 }
 
 static ProcessScheduler *g_current_ps;
-void *entry_clock_int_handler();
+void *entry_clock_int_handler() EXPORT_SYMBOL(entry_clock_int_handler);
 void ps_do_auto_schedule(ProcessScheduler *ps, Context *context);
+void clock_int_handler(Context *context) EXPORT_SYMBOL(clock_int_handler);
 void clock_int_handler(Context *context) {
     ru_port_write8(0x20, 0x60);
     ps_do_auto_schedule(g_current_ps, context);
