@@ -1,5 +1,9 @@
 #include "gptpart.h"
 
+#ifndef memset 
+#define memset ru_memset
+#endif
+
 unsigned int crc32(const void *pdata, unsigned int size)
 {
     const unsigned char *data = (const unsigned char *)pdata;
