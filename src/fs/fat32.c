@@ -196,7 +196,7 @@ int fat32_makefs(struct tagFSTool *fs) {
 
 #define HANDLE_CLUSTER(h) ((h) & 0x00000000ffffffffull)
 #define HANDLE_OFFSET(h)  (((h) & 0xffffffff00000000ull) >> 32)
-#define MAKE_CLUSTER_OFFSET_HANDLE(cl, of) (((FileHandle)of << 32) | cl)
+#define MAKE_CLUSTER_OFFSET_HANDLE(cl, of) (((FileHandle)(of) << 32) | (cl))
 
 //FileItem可被占用
 #define ITEM_AVAILABLE(x) (x.attribute == 0 || x.dosname[0] == 0xe5)  

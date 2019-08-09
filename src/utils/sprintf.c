@@ -239,7 +239,7 @@ static inline int internal_print_u(
 	int flag_force_space_sign
 ) {
 	int v = 0;
-	if (flag_left_justify && flag_padding_zero || flag_force_plus_sign && flag_force_space_sign)
+	if ((flag_left_justify && flag_padding_zero) || (flag_force_plus_sign && flag_force_space_sign))
 		return v;
 	int32 w = (flag_force_plus_sign || flag_force_space_sign ? 1 : 0) + (value ? internal_abs_log_ceil(value, 10) : 1);
 	if (flag_padding_zero) {

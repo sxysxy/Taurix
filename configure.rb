@@ -43,6 +43,10 @@ def is_windows
     RUBY_PLATFORM =~ /mingw/ || RUBY_PLATFORM =~ /mswin/
 end
 
+def is_osx 
+    RUBY_PLATFORM =~ /darwin/
+end
+
 #------------源文件和头文件的目录-------
 # 脚本中涉及到源文件的相对路径，都是相对于DIR_SRC的，头文件同理
 DIR_SRC = File.join(DIR_ROOT, "src")  
@@ -150,11 +154,14 @@ end
 
 MAKEFILE = File.open("Makefile", "w")
 BASE_ADDR = SETTINGS["Architecture"][$arch]["base address"] || 0x10000
-MAKEFILE.print("Taurix : #{OBJECTS.join(" ")}\n\t#{LINK} #{OBJECTS.join(" ")} -o Taurix#{(is_windows)? ".o":"" } #{(RUBY_PLATFORM =~ /darwin/) ? "-image_base #{BASE_ADDR}" : "-Ttext=#{BASE_ADDR}"} #{(RUBY_PLATFORM =~ /darwin/) ? "-e start" : "--entry=start"} #{LINK_FLAGS_COMMON}\n")
-if is_windows #用objcopy转换格式 
+MAKEFILE.print("Taurix : #{OBJECTS.join(" ")}\n\t#{LINK} #{OBJECTS.join(" ")} -o Taurix#{(is_windows || is_osx)? ".o":"" } #{(is_osx) ? "-image_base #{BASE_ADDR}" : "-Ttext=#{BASE_ADDR}"} #{(is_osx) ? "-e start" : "--entry=start"} #{LINK_FLAGS_COMMON}\n")
+if is_windows || is_osx #用objcopy转换格式 
     case $arch 
     when /i386/
         MAKEFILE.print("\tobjcopy -O elf32-i386 Taurix.o Taurix\n")
+    else 
+        puts("Not supported yet: #{$arch}")
+        exit 1
     end
 end
 SOURCES.each do |src, dep|
