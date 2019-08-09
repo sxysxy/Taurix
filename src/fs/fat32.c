@@ -170,7 +170,8 @@ int fat32_makefs(struct tagFSTool *fs) {
     int e = fat32_fstool_initialize(fat, fs->io, fs->start_lba, fs->end_lba);  //偷个懒，直接调用它...
     if(e) return e;
     {
-    unsigned char init_fat[512] = {0};
+    unsigned char init_fat[512];
+    memset(init_fat, 0, sizeof(init_fat));
     //0号项
     init_fat[0] = 0xf8;
     init_fat[1] = 0xff;

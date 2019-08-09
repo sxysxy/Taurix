@@ -1,9 +1,11 @@
 [bits 32]
 [section .text]
-global start, _start
+global start, _start, main, _main
 extern TaurixCMain
 global g_multiboot_info_addr  ;导出multiboot信息地址
 
+main:
+_main:
 start:
 _start:
 jmp multiboot_entry

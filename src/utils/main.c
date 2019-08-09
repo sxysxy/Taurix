@@ -51,6 +51,10 @@ int basic_mm_init() {
 }
 
 //暂时的代码，测试多任务
+int process1_main() EXPORT_SYMBOL(process1_main);
+int process2_main() EXPORT_SYMBOL(process2_main);
+int process3_main() EXPORT_SYMBOL(process3_main);
+
 int process1_main() {
     int cnt = 0;
     for(;;) {

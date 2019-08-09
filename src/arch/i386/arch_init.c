@@ -11,6 +11,7 @@
 GDTItem *g_gdt = 0;
 IDTItem *g_idt = 0;
 
+void reload_selectors() EXPORT_SYMBOL(reload_selectors);
 int32 init_gdt() {
     g_gdt = ru_malloc(sizeof(GDTItem) * GDT_MAX_NUMBER);
     if((uint32)g_gdt % 8) 
@@ -22,7 +23,7 @@ int32 init_gdt() {
     i386_set_gdt_item(g_gdt + SELECTOR_INDEX_CODE32_USER, 0, 0xffffffffu, FLAGS_GDT_CODE32_USER);
     i386_set_gdt_item(g_gdt + SELECTOR_INDEX_DATA32_USER, 0, 0xffffffffu, FLAGS_GDT_DATA32_USER);
     i386_set_gdtr(sizeof(GDTItem) * GDT_MAX_NUMBER - 1, g_gdt);
-    void reload_selectors();
+    
     reload_selectors();
     return STATUS_SUCCESS;
 }

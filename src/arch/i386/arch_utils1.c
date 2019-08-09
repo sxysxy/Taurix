@@ -124,7 +124,7 @@ typedef struct tagMultibootInfo {
     //TODO: 如果有其它需要再添加
 }MultibootInfo;
 
-extern MultibootInfo *g_multiboot_info_addr;  //定义在boot.S中
+extern MultibootInfo *g_multiboot_info_addr EXPORT_SYMBOL(g_multiboot_info_addr);  //定义在boot.S中
 
 int32 ru_detect_available_memory(size_t min_size, _OUT void **baseaddr, _OUT size_t *actual_size) {
     MultibootInfo *mbinfo = g_multiboot_info_addr;
