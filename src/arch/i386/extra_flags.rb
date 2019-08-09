@@ -3,7 +3,7 @@ _CXX_FLAGS_COMMON.push("-m32 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast")
 _ASM_FLAGS_COMMON.push("-f elf")
 
 #禁止导出符号前加下划线
-if is_window || is_osx
+if is_windows || is_osx
     _CC_FLAGS_COMMON.push "-fno-leading-underscore"
     _CXX_FLAGS_COMMON.push "-fno-leading-underscore"
 end
