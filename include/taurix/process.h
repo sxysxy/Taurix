@@ -9,11 +9,22 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
+#include <taurix/timer.h>
+
 CSTART
 
 struct tagProcess;
 //要求Process结构定义中包含下面的ProcessInfo，剩余部分可以将平台相关的数据存入
 typedef struct tagProcess Process;  
+
+//进程阻塞队列。这个队列记录了阻塞当前进程的对象
+typedef struct tagProcessBlockList {
+    union {
+        Process *process;
+        Timer *timer;
+    };
+    struct tagProcessBlockList *next;
+}ProcessBlockList;
 
 enum ProcessPrivilege{
   PRIVILEGE_KERNEL = 0,
@@ -23,7 +34,17 @@ enum ProcessPrivilege{
 typedef struct tagProcessInfo {
 
     uint32 pid, parent_id;  //id
-    uint32 flags;
+
+    //flags
+    //bits 0 -  15 
+    //bits 16 - 31
+    union {
+        uint32 flags;
+        struct {
+            uint16 status;
+            uint16 reserved;
+        }flags_aux;
+    };
 
     void *entry;            //入口地址，入口为0为无效
 
@@ -37,11 +58,21 @@ typedef struct tagProcessInfo {
     void *stack;
     uint32 stack_size;
 
+    ProcessBlockList *block_list;
+
     //TODO: 补充其它的通用进程信息
 
     //通用的扩展信息部分
     void *info_extra;
 }ProcessInfo;
+
+#define PROCESS_STATUS_READY        0
+#define PROCESS_STATUS_RUNNING      1
+#define PROCESS_STATUS_SENDING      2
+#define PROCESS_STATUS_RECEIVING    3
+#define PROCESS_STATUS_DEADLOCKED   4
+#define PROCESS_STATUS_ZOMBIE       5
+#define PROCESS_STATUS_DEAD         6
 
 //由于Process是不完全类型，这里提供接口查询一个Process结构占用的内存空间的大小（in bytes)
 size_t process_query_sizeof_process();
@@ -77,6 +108,15 @@ int32 ps_initialize(ProcessScheduler *ps, uint32 max_process);
 
 //添加进程，失败会返回STATUS_FAILED
 int32 ps_add_process(ProcessScheduler *ps, ProcessInfo *info);
+
+//阻塞进程
+int32 ps_block_process(ProcessScheduler *ps, Process *proc, ProcessBlockList *blocker, uint32 flag);
+
+//解除进程阻塞
+int32 ps_unblock_process(ProcessScheduler *ps, Process *proc);
+
+//死锁检查
+int32 ps_check_deadlock(ProcessScheduler *ps, Process *proc);
 
 //开始进行调度, 使用第一个加入调度器的进程作为第一个进程，duration_per_slice指定了每个时间片的时间（单位：ms）
 int32 ps_schedule(ProcessScheduler *ps, uint32 duration_per_slice);

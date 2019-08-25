@@ -55,11 +55,11 @@ int32 process_initialize(Process *proc, ProcessInfo *info) {
     return STATUS_SUCCESS;
 }   
 
-void simulate_iret(Context *context) EXPORT_SYMBOL(simulate_iret);
+void simulate_iret(Context context) EXPORT_SYMBOL(simulate_iret);
 int32 process_switch_to(Process *target, uint32 flags) {
     //自力更生，丰衣足食，破TSS一点都不好用，软件方法实现进程切换就完事了
     if(flags & PROCESS_SCHEDULE_FROM_REQ) {    //软件请求进入调度或未有当前运行中进程
-        simulate_iret(&target->context);
+        simulate_iret(target->context);
         return STATUS_SUCCESS;
     } 
     return STATUS_FAILED;
@@ -134,7 +134,7 @@ void ps_do_auto_schedule(ProcessScheduler *ps, Context *context) {  //时间片�
     int max_priority = 0;
     for(int i = 0; i < ps->max_process; i++) {  //选出当前剩余时间片最多的进程
         Process *proc = &ps->proc_table[i];
-        if(!proc || (proc->info.flags & PROCESS_PRESENT) == 0) continue;
+        if(!proc || (proc->info.flags & PROCESS_PRESENT) == 0 || proc->info.flags_aux.status > 1) continue;
         if(proc->info.remain_time_slice <= 0)continue;
         if(proc->info.remain_time_slice > max_priority) {
             perfer_proc = proc;
@@ -145,7 +145,7 @@ void ps_do_auto_schedule(ProcessScheduler *ps, Context *context) {  //时间片�
         max_priority = 0;
         for(int i = 0; i < ps->max_process; i++) {
             Process *proc = &ps->proc_table[i];
-            if(!proc || (proc->info.flags & PROCESS_PRESENT) == 0) continue;
+            if(!proc || (proc->info.flags & PROCESS_PRESENT) == 0 || proc->info.flags_aux.status > 1) continue;
             proc->info.remain_time_slice = proc->info.priority;
             if(proc->info.remain_time_slice > max_priority) {
                 perfer_proc = proc;
@@ -158,6 +158,10 @@ void ps_do_auto_schedule(ProcessScheduler *ps, Context *context) {  //时间片�
         //切换当前进程
         perfer_proc->info.remain_time_slice--;
         ps->current = perfer_proc;
+        
+        if(perfer_proc->info.flags_aux.status == PROCESS_STATUS_READY) 
+            perfer_proc->info.flags_aux.status = PROCESS_STATUS_RUNNING;
+        
                //向低特权级任务切换
         if(perfer_proc->info.flags & PROCESS_PRIVILEGE_USER) 
             ru_memcpy(context, &perfer_proc->context, sizeof(Context));

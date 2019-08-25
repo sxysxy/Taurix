@@ -85,21 +85,9 @@ simulate_iret:
     ret
 
 ;模拟中断返回，返回目标在低特权级
-;void simulate_iret_to_user(Context *context)
+;void simulate_iret_to_user(Context context)
 simulate_iret_to_user:
-    
-    mov eax, [esp+4]  ;eax <- src(context)
-
-    ;传入memcpy的参数，因为push会破坏esp寄存器，所以使用mov指令代替push
-    sub esp, 68
-    mov dword [esp-4], 68
-    mov [esp-8], eax 
-    mov eax, esp
-    mov [esp-12], eax 
-    sub esp, 12      
-    call ru_memcpy
-    add esp, 12         ;3*4
-
+    add esp, 4
                 ;这时候esp恰好指向目标Context
     popad       ;模拟恢复现场 
     pop ds 

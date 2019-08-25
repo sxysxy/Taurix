@@ -29,7 +29,7 @@ mov eax, g_multiboot_info_addr
 mov [eax], ebx
 
 ;初始化栈
-STACK_SIZE equ 0x2000
+STACK_SIZE equ 0x5000
 mov esp, stack_area+STACK_SIZE
 
 call TaurixCMain
