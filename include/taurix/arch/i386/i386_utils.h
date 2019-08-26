@@ -74,7 +74,7 @@ typedef struct tagContext {
     uint32 edi, esi, ebp, esp, ebx, edx, ecx, eax;  //ints_wrapper中pushad压入，这里结构体中跟pushad指令入栈顺序是反过来的
     uint32 ds, es, fs, gs;                          //ints_wrapper中压入
     uint32 eip, cs, eflags, esp0, ss0;              //cpu自动压入栈中，esp0, ss0为切换栈之前的esp与ss   
-}Context;
+}TContext;
 
 extern GDTItem *g_gdt;
 extern IDTItem *g_idt;

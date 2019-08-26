@@ -6,4 +6,4 @@
 
 typedef struct tagTimer {
     int unimplemented;
-}Timer;
+}TTimer;

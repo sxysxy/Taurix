@@ -8,6 +8,7 @@
 #include <taurix/mm/basic_mm.h>
 #include <taurix/arch_init.h>
 #include <taurix/process.h>
+#include <taurix/ipc.h>
 
 //内核起始地址
 #define KERNEL_BASE_ADDRESS ((void*)0x100000)
@@ -50,6 +51,7 @@ int basic_mm_init() {
     return STATUS_SUCCESS;
 }
 
+/*
 //暂时的代码，测试多任务
 int process1_main() EXPORT_SYMBOL(process1_main);
 int process2_main() EXPORT_SYMBOL(process2_main);
@@ -88,7 +90,6 @@ int process3_main() {
     }
 }
 
-
 void test_process() {
     ProcessScheduler ps;
     ps_initialize(&ps, 3);
@@ -123,6 +124,14 @@ void test_process() {
     ps_schedule(&ps, 10);  //10ms一个时间片，开始调度
     ru_kernel_suspend(); 
 }
+*/
+
+//暂时的代码，测试ipc
+void test_ipc() {
+
+    ru_kernel_suspend();
+}
+
 void TaurixCMain() EXPORT_SYMBOL(TaurixCMain);
 void TaurixCMain() {
     hello();
@@ -146,8 +155,13 @@ void TaurixCMain() {
         ru_text_print("[ OK ] Initialize the architecture, TODO: Finish this module.\n");
     }
     
+    init_ipc();
+
     //TODO: fixme: process 
     ru_enable_interrupt();
-    test_process();
+    //test_process();
+    
+    test_ipc();
+    
     ru_kernel_suspend();
 }

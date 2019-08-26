@@ -11,7 +11,8 @@
 #define ll_insert_front(head, item) (item)->next = head; head = (item);
 
 //在链表尾部插入新元素item
-#define ll_insert_back(head, item)  { typeof(head) __ll_tmp_p__ = head;     \ 
+#define ll_insert_back(head, item)  {                                       \
+                                      typeof(head) __ll_tmp_p__ = head;     \ 
                                       while(__ll_tmp_p__->next)             \
                                         __ll_tmp_p__ = __ll_tmp_p__->next;  \
                                       __ll_tmp_p__->next = item;            \

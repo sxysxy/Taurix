@@ -14,7 +14,6 @@
 CSTART
 
 typedef struct tagBasicMM {
-    TObject basic;
     void *mm_data;  //当前使用的是lanzalloc,那么它应当指向struct lanzalloc。但这里仍然保留实现无关的接口
 }BasicMM;
 

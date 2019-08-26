@@ -10,12 +10,13 @@
 
 #include <taurix/arch/i386/i386_utils.h>
 #include <taurix/process.h>
+#include <taurix/utils/linklist.h>
 #include <taurix/mm/basic_mm.h>
 
 struct tagProcess {
     ProcessInfo info; //utility
 
-    Context context;  //用于切换任务时的上下文
+    TContext context;  //用于切换任务时的上下文
     
     /* 不再使用i386平台提供的机制 
     uint16 ldt_selector;
@@ -44,7 +45,7 @@ int32 process_initialize(Process *proc, ProcessInfo *info) {
     uint16 sel_code = info->flags & PROCESS_PRIVILEGE_KERNEL ? (SELECTOR_INDEX_CODE32_KERNEL * 8) : (SELECTOR_INDEX_CODE32_USER * 8);
     uint16 sel_data = info->flags & PROCESS_PRIVILEGE_KERNEL ? (SELECTOR_INDEX_DATA32_KERNEL * 8) : (SELECTOR_INDEX_DATA32_USER * 8);
 
-    ru_memset(&proc->context, 0, sizeof(Context));
+    ru_memset(&proc->context, 0, sizeof(TContext));
     proc->context.ss0 = sel_data;
     proc->context.esp0 = (uint32)proc->info.stack + proc->info.stack_size;
     proc->context.eflags = 0x00000202u;   
@@ -55,7 +56,7 @@ int32 process_initialize(Process *proc, ProcessInfo *info) {
     return STATUS_SUCCESS;
 }   
 
-void simulate_iret(Context context) EXPORT_SYMBOL(simulate_iret);
+void simulate_iret(TContext context) EXPORT_SYMBOL(simulate_iret);
 int32 process_switch_to(Process *target, uint32 flags) {
     //自力更生，丰衣足食，破TSS一点都不好用，软件方法实现进程切换就完事了
     if(flags & PROCESS_SCHEDULE_FROM_REQ) {    //软件请求进入调度或未有当前运行中进程
@@ -83,9 +84,12 @@ int32 ps_add_process(ProcessScheduler *ps, ProcessInfo *info) {
     if(!info || (info->flags & PROCESS_PRESENT) == 0) {
         return STATUS_FAILED;
     }
-    for(int i = 0; i < ps->max_process; i++) {
+    for(uint32 i = 0; i < ps->max_process; i++) {
         if ((ps->proc_table[i].info.flags & PROCESS_PRESENT) == 0) { //表中空闲的表项
             process_initialize(&ps->proc_table[i], info);
+            ps->proc_table[i].info.pid = i;
+            ps->proc_table[i].info.scheduler = ps;
+            ps->proc_table[i].info.block_list = NULL;
             return STATUS_SUCCESS;
         }
     }
@@ -94,9 +98,9 @@ int32 ps_add_process(ProcessScheduler *ps, ProcessInfo *info) {
 
 static ProcessScheduler *g_current_ps;
 void *entry_clock_int_handler() EXPORT_SYMBOL(entry_clock_int_handler);
-void ps_do_auto_schedule(ProcessScheduler *ps, Context *context);
-void clock_int_handler(Context *context) EXPORT_SYMBOL(clock_int_handler);
-void clock_int_handler(Context *context) {
+void ps_do_auto_schedule(ProcessScheduler *ps, TContext *context);
+void clock_int_handler(TContext *context) EXPORT_SYMBOL(clock_int_handler);
+void clock_int_handler(TContext *context) {
     ru_port_write8(0x20, 0x60);
     ps_do_auto_schedule(g_current_ps, context);
 }
@@ -129,12 +133,12 @@ int32 ps_schedule(ProcessScheduler *ps, uint32 duration_per_slice) {
 
 //给时钟/定时器中断调用的
 //注意，参数的ps不能用，如果直接把ps_do_auto_schedule作为中断处理程序，参数ps不可用，参数ps实际上是Context
-void ps_do_auto_schedule(ProcessScheduler *ps, Context *context) {  //时间片轮转算法
+void ps_do_auto_schedule(ProcessScheduler *ps, TContext *context) {  //时间片轮转算法
     Process *perfer_proc = NULL;
     int max_priority = 0;
     for(int i = 0; i < ps->max_process; i++) {  //选出当前剩余时间片最多的进程
         Process *proc = &ps->proc_table[i];
-        if(!proc || (proc->info.flags & PROCESS_PRESENT) == 0 || proc->info.flags_aux.status > 1) continue;
+        if(!proc || (proc->info.flags & PROCESS_PRESENT) == 0 || proc->info.status > 1) continue;
         if(proc->info.remain_time_slice <= 0)continue;
         if(proc->info.remain_time_slice > max_priority) {
             perfer_proc = proc;
@@ -145,7 +149,7 @@ void ps_do_auto_schedule(ProcessScheduler *ps, Context *context) {  //时间片�
         max_priority = 0;
         for(int i = 0; i < ps->max_process; i++) {
             Process *proc = &ps->proc_table[i];
-            if(!proc || (proc->info.flags & PROCESS_PRESENT) == 0 || proc->info.flags_aux.status > 1) continue;
+            if(!proc || (proc->info.flags & PROCESS_PRESENT) == 0 || proc->info.status > 1) continue;
             proc->info.remain_time_slice = proc->info.priority;
             if(proc->info.remain_time_slice > max_priority) {
                 perfer_proc = proc;
@@ -154,23 +158,63 @@ void ps_do_auto_schedule(ProcessScheduler *ps, Context *context) {  //时间片�
         }
     }
     if(perfer_proc) {
-        ru_memcpy(&ps->current->context, context, sizeof(Context));  //保存被中断进程的上下文信息
+        ru_memcpy(&ps->current->context, context, sizeof(TContext));  //保存被中断进程的上下文信息
         //切换当前进程
         perfer_proc->info.remain_time_slice--;
         ps->current = perfer_proc;
         
-        if(perfer_proc->info.flags_aux.status == PROCESS_STATUS_READY) 
-            perfer_proc->info.flags_aux.status = PROCESS_STATUS_RUNNING;
+        if(perfer_proc->info.status == PROCESS_STATUS_READY) 
+            perfer_proc->info.status = PROCESS_STATUS_RUNNING;
         
                //向低特权级任务切换
         if(perfer_proc->info.flags & PROCESS_PRIVILEGE_USER) 
-            ru_memcpy(context, &perfer_proc->context, sizeof(Context));
+            ru_memcpy(context, &perfer_proc->context, sizeof(TContext));
         else   //同特权级任务切换，不需要恢复堆栈
-            ru_memcpy(context, &perfer_proc->context, sizeof(Context) - 8);  //no esp0, ss0
+            ru_memcpy(context, &perfer_proc->context, sizeof(TContext) - 8);  //no esp0, ss0
         
     } else {  //依然没有进程可以调度，挂起
+    /*
         ru_text_set_color(VGA_TEXT_RED);
         ru_text_print("[ Halt ] No process to switch\n");
         ru_kernel_suspend();
+    */
     }
+}
+
+//阻塞进程
+int32 ps_block_process(ProcessScheduler *ps, uint32 pid, ProcessBlockList *blocker, uint32 flag) {
+    if(pid < 0 || pid >= ps->max_process) 
+        return STATUS_FAILED;
+    Process *prcess = &ps->proc_table[pid];
+    prcess->info.status = flag;
+    if(blocker)
+        ll_insert_front(prcess->info.block_list, blocker);
+    return STATUS_SUCCESS;
+}
+
+//解除进程阻塞
+int32 ps_unblock_process(ProcessScheduler *ps, uint32 pid) {
+    if(pid < 0 || pid >= ps->max_process)
+        return STATUS_FAILED;
+    ps->proc_table[pid].info.status = PROCESS_STATUS_READY;
+}
+
+//死锁检查
+int32 ps_check_deadlock(ProcessScheduler *ps, uint32 pid) {
+     if(pid < 0 || pid >= ps->max_process)
+        return 1;
+    return 0;
+}
+
+ProcessScheduler *ps_get_working_scheduler() {
+    return g_current_ps;
+}
+
+int32 ps_get_process(ProcessScheduler *ps, uint32 pid, Process **process) {
+    if(pid < 0 || pid >= ps->max_process) {
+        *process = NULL;
+        return STATUS_FAILED;
+    }
+    *process = &ps->proc_table[pid];
+    return STATUS_SUCCESS;
 }

@@ -20,8 +20,8 @@ typedef struct tagProcess Process;
 //进程阻塞队列。这个队列记录了阻塞当前进程的对象
 typedef struct tagProcessBlockList {
     union {
-        Process *process;
-        Timer *timer;
+        uint32 process_id;
+        TTimer *timer;
     };
     struct tagProcessBlockList *next;
 }ProcessBlockList;
@@ -30,33 +30,29 @@ enum ProcessPrivilege{
   PRIVILEGE_KERNEL = 0,
   PRIVILEGE_USER
 };
+
+struct tagProcessScheduler;
 //-----------进程实现接口
 typedef struct tagProcessInfo {
 
     uint32 pid, parent_id;  //id
 
-    //flags
-    //bits 0 -  15 
-    //bits 16 - 31
-    union {
-        uint32 flags;
-        struct {
-            uint16 status;
-            uint16 reserved;
-        }flags_aux;
-    };
+    uint16 status;
+    uint16 flags;
 
     void *entry;            //入口地址，入口为0为无效
 
     /* 调度相关 */
     uint32 priority;          //优先权 
-    uint32 remain_time_slice; //剩余时间片
-    uint32 status;           
+    uint32 remain_time_slice; //剩余时间片         
     void *scheduling_extra;   //调度器可自行扩展的信息
 
     //栈空间
     void *stack;
     uint32 stack_size;
+
+    //调度器
+    struct tagProcessScheduler *scheduler;
 
     ProcessBlockList *block_list;
 
@@ -109,17 +105,23 @@ int32 ps_initialize(ProcessScheduler *ps, uint32 max_process);
 //添加进程，失败会返回STATUS_FAILED
 int32 ps_add_process(ProcessScheduler *ps, ProcessInfo *info);
 
+//获得进程
+int32 ps_get_process(ProcessScheduler *ps, _IN uint32 pid, _OUT Process **process);
+
 //阻塞进程
-int32 ps_block_process(ProcessScheduler *ps, Process *proc, ProcessBlockList *blocker, uint32 flag);
+int32 ps_block_process(ProcessScheduler *ps, uint32 pid, ProcessBlockList *blocker, uint32 new_status);
 
 //解除进程阻塞
-int32 ps_unblock_process(ProcessScheduler *ps, Process *proc);
+int32 ps_unblock_process(ProcessScheduler *ps, uint32 pid);
 
 //死锁检查
-int32 ps_check_deadlock(ProcessScheduler *ps, Process *proc);
+int32 ps_check_deadlock(ProcessScheduler *ps, uint32 pid);
 
 //开始进行调度, 使用第一个加入调度器的进程作为第一个进程，duration_per_slice指定了每个时间片的时间（单位：ms）
 int32 ps_schedule(ProcessScheduler *ps, uint32 duration_per_slice);
+
+//获得正在工作的调度器
+ProcessScheduler *ps_get_working_scheduler() EXPORT_SYMBOL(ps_get_working_scheduler);
 
 //删除进程还要配合MM模块使用，TODO: 删除进程
 

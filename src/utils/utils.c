@@ -113,10 +113,3 @@ void *ru_realloc(void *address, size_t size) {
 void ru_free(void *ptr) {
     basic_mm_free(&ru_basic_mm, ptr);
 }
-
-//OOP system 
-void tobject_initialize(TObject *self) {
-    self->flags = 0;
-}
-
-void tobject_finalize(TObject *this) { }

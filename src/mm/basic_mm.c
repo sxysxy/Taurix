@@ -19,9 +19,8 @@ void basic_mm_free(BasicMM *self, void *ptr) {
     lanzalloc_free((struct lanzalloc *)self->mm_data, ptr);
 }
 void basic_mm_initialize(BasicMM *self, void *baseptr, size_t size) {
-    tobject_initialize(TOOP_CAST(TObject, self));
     self->mm_data = lanzalloc_initialize(baseptr, size, ru_isqrt(size));
 }
 void basic_mm_finalize(BasicMM *self) {
-    tobject_finalize(TOOP_CAST(TObject, self));
+    
 }

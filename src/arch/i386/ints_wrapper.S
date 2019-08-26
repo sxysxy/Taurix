@@ -57,6 +57,8 @@ set_handler entry_exception_gp_handler, exception_gp_handler
 set_handler entry_clock_int_handler, clock_int_handler  ;->!
 set_handler entry_keyboard_int_handler, keyboard_int_handler
 
+set_handler entry_ipc_syscall, ipc_syscall
+
 ;模拟中断返回
 ;void simulate_iret(Context *context)
 simulate_iret:
