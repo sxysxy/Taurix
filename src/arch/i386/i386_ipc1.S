@@ -2,7 +2,7 @@
 ;   author: hfcloud(sxysxygm@gmail.com)
 ;     date: 2019.08.27
 
-global ipc_send, ipc_recv, ipc_post, ipc_peek
+global ipc_send, ipc_recv, ipc_notify, ipc_post, ipc_peek
 
 ipc_send:
     push ebp
@@ -26,9 +26,29 @@ ipc_recv:
     mov ebp, esp
     push ebx
 
+    mov eax, 1
+    mov ebx, [ebp+8]
+
+    int 0x9f
+
     pop ebx
     leave
     ret
+
+ipc_notify:
+    push ebp
+    mov ebp, esp
+    push ebx
+
+    mov eax, 2
+    mov ebx, [ebp+8]
+
+    int 0x9f
+
+    pop ebx
+    leave
+    ret
+
 
 ipc_post:
 

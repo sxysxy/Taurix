@@ -17,14 +17,17 @@ struct tagProcess;
 //要求Process结构定义中包含下面的ProcessInfo，剩余部分可以将平台相关的数据存入
 typedef struct tagProcess Process;  
 
-//进程阻塞队列。这个队列记录了阻塞当前进程的对象
-typedef struct tagProcessBlockList {
-    union {
-        uint32 process_id;
-        TTimer *timer;
-    };
-    struct tagProcessBlockList *next;
-}ProcessBlockList;
+struct tagMessage;
+
+//进程IPC Queuer队列
+typedef struct tagProcessQueuer {
+    //发送这个queuer的进程id
+    uint32 process_id;
+
+    struct tagMessage *message;
+    
+    struct tagProcessQueuer *next;
+}ProcessQueuer;
 
 enum ProcessPrivilege{
   PRIVILEGE_KERNEL = 0,
@@ -51,12 +54,19 @@ typedef struct tagProcessInfo {
     void *stack;
     uint32 stack_size;
 
+    //退出码
+    uint32 exit_code;
+
     //调度器
     struct tagProcessScheduler *scheduler;
 
-    ProcessBlockList *block_list;
+    //
+    ProcessQueuer *queuing_list;
+    ProcessQueuer *queuing_tail;
 
     //TODO: 补充其它的通用进程信息
+    
+    
 
     //通用的扩展信息部分
     void *info_extra;
@@ -64,8 +74,9 @@ typedef struct tagProcessInfo {
 
 #define PROCESS_STATUS_READY        0
 #define PROCESS_STATUS_RUNNING      1
-#define PROCESS_STATUS_SENDING      2
-#define PROCESS_STATUS_RECEIVING    3
+#define PROCESS_STATUS_RECEIVING    2
+#define PROCESS_STATUS_SENDING      3
+#define PROCESS_STATUS_RUNNABLE     PROCESS_STATUS_SENDING
 #define PROCESS_STATUS_DEADLOCKED   4
 #define PROCESS_STATUS_ZOMBIE       5
 #define PROCESS_STATUS_DEAD         6
@@ -109,7 +120,7 @@ int32 ps_add_process(ProcessScheduler *ps, ProcessInfo *info);
 int32 ps_get_process(ProcessScheduler *ps, _IN uint32 pid, _OUT Process **process);
 
 //阻塞进程
-int32 ps_block_process(ProcessScheduler *ps, uint32 pid, ProcessBlockList *blocker, uint32 new_status);
+int32 ps_block_process(ProcessScheduler *ps, uint32 pid, uint32 new_status);
 
 //解除进程阻塞
 int32 ps_unblock_process(ProcessScheduler *ps, uint32 pid);
@@ -117,11 +128,17 @@ int32 ps_unblock_process(ProcessScheduler *ps, uint32 pid);
 //死锁检查
 int32 ps_check_deadlock(ProcessScheduler *ps, uint32 pid);
 
+//由进程调用，退出进程
+void ps_exit_process(uint32 exit_code);
+
 //开始进行调度, 使用第一个加入调度器的进程作为第一个进程，duration_per_slice指定了每个时间片的时间（单位：ms）
 int32 ps_schedule(ProcessScheduler *ps, uint32 duration_per_slice);
 
 //获得正在工作的调度器
 ProcessScheduler *ps_get_working_scheduler() EXPORT_SYMBOL(ps_get_working_scheduler);
+
+//引发当前工作中调度器立刻重新调度
+void ps_immidate_reschedule(void *reserved);
 
 //删除进程还要配合MM模块使用，TODO: 删除进程
 

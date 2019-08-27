@@ -18,24 +18,41 @@ void ipc_syscall(TContext *context) {
     ProcessScheduler *ps = ps_get_working_scheduler();
     TMessage *msg = (TMessage*)context->ebx;
     uint32 sender_pid = ((ProcessInfo*)ps->current)->pid;
+    msg->sender_pid = sender_pid;
     switch (context->eax)
     {
     case 0:         //send
         {
         uint32 receiver_pid = context->ecx;
         if(receiver_pid < 0 || receiver_pid >= ps->max_process) {
+            context->eax = STATUS_FAILED;
             return;
         }
         Process *receiver = NULL;
         ps_get_process(ps, receiver_pid, &receiver);
         if(!receiver) return;
+        ProcessInfo *ri = (ProcessInfo*)receiver;
+        /*
+        if(ri->status != PROCESS_STATUS_RECEIVING) {
+            context->eax = STATUS_FAILED;
+            return;
+        }*/
 
-        ProcessBlockList *blocker = (ProcessBlockList *)ru_malloc(sizeof(ProcessBlockList));
-        blocker->next = NULL;
-        blocker->process_id = receiver_pid;
+        //阻塞sender
+        ps_block_process(ps, sender_pid, PROCESS_STATUS_SENDING);
         
-        ps_block_process(ps, sender_pid, blocker, PROCESS_STATUS_SENDING);
-        
+        //加入queuer
+        ProcessQueuer *queuer = (ProcessQueuer *)ru_malloc(sizeof(ProcessQueuer));
+        queuer->next = NULL;
+        queuer->process_id = sender_pid;
+        queuer->message = msg;
+        if(ri->queuing_list) {
+            ri->queuing_tail->next = queuer;
+            ri->queuing_tail = queuer;
+        } else {
+            ri->queuing_list = ri->queuing_tail = queuer;
+        }
+
         if(ps_check_deadlock(ps, sender_pid)) {
             if(((ProcessInfo*)ps->current)->flags & PROCESS_PRIVILEGE_KERNEL) {
                 ru_text_set_color(VGA_TEXT_RED);
@@ -44,15 +61,25 @@ void ipc_syscall(TContext *context) {
             }
         }
         
-        ipc_send_impl(msg, receiver);
+        context->eax = ipc_send_impl(msg, receiver);
 
+        ps_immidate_reschedule(context);
+
+        return;
         }
         break;     
 
     case 1:         //receive
-        ipc_recv_impl(msg);
+        context->eax = ipc_recv_impl(msg);
+        ps_immidate_reschedule(context);
+        return;
         break;
-    
+
+    case 2:        //notify
+        context->eax = ipc_notify_impl(msg);
+        ps_immidate_reschedule(context);
+        return;
+        break;
     default:
         /*
         ru_text_set_color(VGA_TEXT_RED);
@@ -65,5 +92,5 @@ void ipc_syscall(TContext *context) {
 
 
 void init_ipc() {
-    i386_set_idt_item(g_idt + IPC_INT_GATE_INDEX, SELECTOR_INDEX_CODE32_KERNEL, (uint32)ipc_syscall, FLAGS_INTGATE);    
+    i386_set_idt_item(g_idt + IPC_INT_GATE_INDEX, SELECTOR_INDEX_CODE32_KERNEL, (uint32)entry_ipc_syscall, FLAGS_INTGATE);    
 }

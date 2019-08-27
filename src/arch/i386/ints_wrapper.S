@@ -60,21 +60,9 @@ set_handler entry_keyboard_int_handler, keyboard_int_handler
 set_handler entry_ipc_syscall, ipc_syscall
 
 ;模拟中断返回
-;void simulate_iret(Context *context)
+;void simulate_iret(Context context)
 simulate_iret:
-    
-    mov eax, [esp+4]  ;eax <- src(context)
-
-    ;传入memcpy的参数，因为push会破坏esp寄存器，所以使用mov指令代替push
-    sub esp, 60
-    mov dword [esp-4], 60
-    mov [esp-8], eax 
-    mov eax, esp
-    mov [esp-12], eax 
-    sub esp, 12      
-    call ru_memcpy
-    add esp, 12         ;3*4
-
+    add esp, 4
                 ;这时候esp恰好指向目标Context
     popad       ;模拟恢复现场 
     pop ds 

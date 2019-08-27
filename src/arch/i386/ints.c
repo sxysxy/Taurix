@@ -36,17 +36,22 @@ int32 init_irq_ints() {
     return STATUS_SUCCESS;
 }
 
-#define def_handler_func(fname, excp) void entry_##fname() EXPORT_SYMBOL(entry_##fname); \
+#define def_exception_handler_func(fname, excp) void entry_##fname() EXPORT_SYMBOL(entry_##fname); \
 void fname(TContext *context) EXPORT_SYMBOL(fname); \
 void fname(TContext *context) {     \
     ru_text_set_color(VGA_TEXT_RED);                     \
     ru_text_print(excp); \
+    char tmp[512];                 \ 
+    ru_sprintf_s(tmp, 512, "eax: %8X | ebx: %8X | ecx: %8X | edx: %8X\nesi: %8X | edi: %8X | esp: %8X | ebp: %8X | eip: %8X\ncs : %8X | ss : %8X | ds : %8X | fs : %8X | gs : %8X\n", \
+                            context->eax, context->ebx, context->ecx, context->edx, context->esi, context->edi, context->esp, context->ebp, \
+                            context->eip, context->cs, context->ss0, context->ds, context->fs, context->gs);    \
+    ru_text_print(tmp); \
     ru_kernel_suspend(); \
 }
 
-def_handler_func(exception_de_handler, "[ Exception ] Divided by zero\n")
-def_handler_func(exception_df_handler, "[ Exception ] Double Fault\n")
-def_handler_func(exception_gp_handler, "[ Exception ] General Protection\n")
+def_exception_handler_func(exception_de_handler, "[ Exception ] Divided by zero\n")
+def_exception_handler_func(exception_df_handler, "[ Exception ] Double Fault\n")
+def_exception_handler_func(exception_gp_handler, "[ Exception ] General Protection\n")
 
 int32 init_exception_ints() {
     i386_set_idt_item(g_idt + GATE_INDEX_EXCEPTION_DE, SELECTOR_INDEX_CODE32_KERNEL, (uint32)entry_exception_de_handler, FLAGS_INTGATE);

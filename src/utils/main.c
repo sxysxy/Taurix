@@ -51,7 +51,6 @@ int basic_mm_init() {
     return STATUS_SUCCESS;
 }
 
-/*
 //暂时的代码，测试多任务
 int process1_main() EXPORT_SYMBOL(process1_main);
 int process2_main() EXPORT_SYMBOL(process2_main);
@@ -124,10 +123,72 @@ void test_process() {
     ps_schedule(&ps, 10);  //10ms一个时间片，开始调度
     ru_kernel_suspend(); 
 }
-*/
+
 
 //暂时的代码，测试ipc
+void process_sender() EXPORT_SYMBOL(process_sender);
+void process_sender() {
+    char data1[] = "Hello world";
+    char data2[] = "Hi world";
+
+    TMessage msg;
+    msg.message = 233;  //message id，测试的时候随便写的
+    msg.shared_data = data1;
+    msg.sizeof_data = sizeof(data1);
+    ipc_send(&msg, 1);   //在目标进程notify之前阻塞
+    ru_text_print("sender: Sended data1\n");
+    msg.shared_data = data2;
+    msg.sizeof_data = sizeof(data2);
+    ipc_send(&msg, 1);
+    ru_text_print("sender: Sended data2\n");
+    msg.message = 1024;  //make receiver exit
+    msg.sizeof_data = 0;
+    ipc_send(&msg, 1);
+    ps_exit_process(0);
+}
+void process_receiver() EXPORT_SYMBOL(process_receiver);
+void process_receiver() {
+    TMessage msg;
+    while(1) {
+        ipc_recv(&msg);  //没有消息时会阻塞
+        if(msg.message == 233) {
+            ru_text_print("receiver: Got ");
+            ru_text_print(msg.shared_data);
+            ru_text_putchar('\n');
+            msg.sizeof_return = 0;
+            ipc_notify(&msg);
+        } else if(msg.message == 1024) {
+            ru_text_print("receiver: Exited");
+            msg.sizeof_return = 0;
+            ipc_notify(&msg);
+            ps_exit_process(0);
+        }
+    }
+}
+
 void test_ipc() {
+    ProcessScheduler ps;
+    ps_initialize(&ps, 2);
+
+    ProcessInfo pinfo;
+    ru_memset(&pinfo, 0, sizeof(pinfo));
+    //入口点
+    pinfo.entry = process_sender;
+    pinfo.priority = 40;
+    //设置栈
+    pinfo.stack = ru_malloc(0x500);
+    pinfo.stack_size = 0x500;
+    //标记
+    pinfo.flags = PROCESS_PRESENT | PROCESS_PRIVILEGE_KERNEL;
+    ps_add_process(&ps, &pinfo);
+
+    pinfo.entry = process_receiver;
+    pinfo.priority = 50;    
+    pinfo.stack = ru_malloc(0x500);
+    pinfo.stack_size = 0x500;
+    ps_add_process(&ps, &pinfo);
+
+    ps_schedule(&ps, 10);
 
     ru_kernel_suspend();
 }
