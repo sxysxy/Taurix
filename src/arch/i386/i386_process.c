@@ -166,24 +166,12 @@ void ps_do_auto_schedule(ProcessScheduler *ps, TContext *context) {  //时间片
         //切换当前进程
         perfer_proc->info.remain_time_slice--;
         ps->current = perfer_proc;
-         
-        perfer_proc->info.status = PROCESS_STATUS_RUNNING;
-        
-        if(context) {  //通过中断返回切换
-               //向低特权级任务切换
-            if(perfer_proc->info.flags & PROCESS_PRIVILEGE_USER) {
-                ru_memcpy(context, &perfer_proc->context, sizeof(TContext)); 
-                context->cs = SELECTOR_INDEX_CODE32_USER * 8;
-                context->ss0 = SELECTOR_INDEX_DATA32_USER * 8;
-            }
-            else   {
-                ru_memcpy(context, &perfer_proc->context, sizeof(TContext));  
-                context->cs = SELECTOR_INDEX_CODE32_KERNEL * 8;
-                context->ss0 = SELECTOR_INDEX_DATA32_KERNEL * 8;
-            }
-        } 
 
-    } else {  //依然没有进程可以调度，挂起
+        if(perfer_proc->info.status == PROCESS_STATUS_READY) 
+            perfer_proc->info.status = PROCESS_STATUS_RUNNING;
+
+        ru_memcpy(context, &ps->current->context, sizeof(TContext)); 
+    } else { // //依然没有进程可以调度，挂起
     /*
         ru_text_set_color(VGA_TEXT_RED);
         ru_text_print("[ Halt ] No process to switch\n");
@@ -235,7 +223,7 @@ int32 ps_get_process(ProcessScheduler *ps, uint32 pid, Process **process) {
     return STATUS_SUCCESS;
 }
 
-void ps_immidate_reschedule(void *context) {
+void ps_immdiate_reschedule(void *context) {
     ProcessScheduler *ps = ps_get_working_scheduler();
     ps_do_auto_schedule(ps, context);
     ru_memcpy(context, &ps->current->context, sizeof(TContext));
@@ -245,6 +233,6 @@ void ps_exit_process(uint32 exit_code) {
     ProcessScheduler *ps = ps_get_working_scheduler();
     ps->current->info.exit_code = exit_code;
     ps->current->info.flags &= (~PROCESS_PRESENT);
-    ps_immidate_reschedule(&ps->current->context);
+    ps_immdiate_reschedule(&ps->current->context);
     return;
 }

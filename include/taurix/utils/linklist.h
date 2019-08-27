@@ -12,7 +12,7 @@
 
 //在链表尾部插入新元素item
 #define ll_insert_back(head, item)  {                                       \
-                                      typeof(head) __ll_tmp_p__ = head;     \ 
+                                      typeof(head) __ll_tmp_p__ = head;     \
                                       while(__ll_tmp_p__->next)             \
                                         __ll_tmp_p__ = __ll_tmp_p__->next;  \
                                       __ll_tmp_p__->next = item;            \

@@ -149,7 +149,7 @@ void process_sender() {
 void process_receiver() EXPORT_SYMBOL(process_receiver);
 void process_receiver() {
     TMessage msg;
-    while(1) {
+    for(int i = 0; i < 1000; i++) {
         ipc_recv(&msg);  //没有消息时会阻塞
         if(msg.message == 233) {
             ru_text_print("receiver: Got ");
@@ -158,7 +158,7 @@ void process_receiver() {
             msg.sizeof_return = 0;
             ipc_notify(&msg);
         } else if(msg.message == 1024) {
-            ru_text_print("receiver: Exited");
+            ru_text_print("receiver: Exited\n");
             msg.sizeof_return = 0;
             ipc_notify(&msg);
             ps_exit_process(0);

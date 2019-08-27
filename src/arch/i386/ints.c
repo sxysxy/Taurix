@@ -41,7 +41,7 @@ void fname(TContext *context) EXPORT_SYMBOL(fname); \
 void fname(TContext *context) {     \
     ru_text_set_color(VGA_TEXT_RED);                     \
     ru_text_print(excp); \
-    char tmp[512];                 \ 
+    char tmp[512];                 \
     ru_sprintf_s(tmp, 512, "eax: %8X | ebx: %8X | ecx: %8X | edx: %8X\nesi: %8X | edi: %8X | esp: %8X | ebp: %8X | eip: %8X\ncs : %8X | ss : %8X | ds : %8X | fs : %8X | gs : %8X\n", \
                             context->eax, context->ebx, context->ecx, context->edx, context->esi, context->edi, context->esp, context->ebp, \
                             context->eip, context->cs, context->ss0, context->ds, context->fs, context->gs);    \

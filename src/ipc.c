@@ -9,8 +9,7 @@
 int32 ipc_send_impl(TMessage *msg, Process *receiver) {
     ProcessInfo* ri = (ProcessInfo*)receiver;
 
-    ps_unblock_process(ps_get_working_scheduler(), ri->pid);    
-    ps_immidate_reschedule();
+    ps_unblock_process(ps_get_working_scheduler(), ri->pid);  
     return STATUS_SUCCESS;
 }
 
@@ -19,7 +18,6 @@ int32 ipc_recv_impl(TMessage *msg) {
     ProcessInfo *pi = (ProcessInfo*)ps->current;  //current
     if(pi->queuing_list == NULL) {
         ps_block_process(ps, pi->pid, PROCESS_STATUS_RECEIVING);
-        ps_immidate_reschedule();
     } else {
         ProcessQueuer *queuer = pi->queuing_list;
         pi->queuing_list = queuer->next;

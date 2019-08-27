@@ -76,7 +76,7 @@ typedef struct tagProcessInfo {
 #define PROCESS_STATUS_RUNNING      1
 #define PROCESS_STATUS_RECEIVING    2
 #define PROCESS_STATUS_SENDING      3
-#define PROCESS_STATUS_RUNNABLE     PROCESS_STATUS_SENDING
+#define PROCESS_STATUS_RUNNABLE     PROCESS_STATUS_RUNNING
 #define PROCESS_STATUS_DEADLOCKED   4
 #define PROCESS_STATUS_ZOMBIE       5
 #define PROCESS_STATUS_DEAD         6
@@ -138,7 +138,7 @@ int32 ps_schedule(ProcessScheduler *ps, uint32 duration_per_slice);
 ProcessScheduler *ps_get_working_scheduler() EXPORT_SYMBOL(ps_get_working_scheduler);
 
 //引发当前工作中调度器立刻重新调度
-void ps_immidate_reschedule(void *reserved);
+void ps_immdiate_reschedule(void *reserved);
 
 //删除进程还要配合MM模块使用，TODO: 删除进程
 

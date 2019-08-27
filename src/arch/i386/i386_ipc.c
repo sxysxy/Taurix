@@ -63,7 +63,7 @@ void ipc_syscall(TContext *context) {
         
         context->eax = ipc_send_impl(msg, receiver);
 
-        ps_immidate_reschedule(context);
+        ps_immdiate_reschedule(context);
 
         return;
         }
@@ -71,13 +71,13 @@ void ipc_syscall(TContext *context) {
 
     case 1:         //receive
         context->eax = ipc_recv_impl(msg);
-        ps_immidate_reschedule(context);
+        ps_immdiate_reschedule(context);
         return;
         break;
 
     case 2:        //notify
         context->eax = ipc_notify_impl(msg);
-        ps_immidate_reschedule(context);
+        ps_immdiate_reschedule(context);
         return;
         break;
     default:
