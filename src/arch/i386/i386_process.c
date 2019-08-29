@@ -77,6 +77,7 @@ int32 ps_initialize(ProcessScheduler *ps, uint32 max_process) {
     ru_memset(ps->proc_table, 0, process_query_sizeof_process() * max_process);
     ps->max_process = max_process;
     ps->current = NULL;
+    ps->flags = 0;
 }
 
 //添加进程，失败会返回STATUS_FAILED
@@ -134,10 +135,17 @@ int32 ps_schedule(ProcessScheduler *ps, uint32 duration_per_slice) {
 //给时钟/定时器中断调用的
 //注意，参数的ps不能用，如果直接把ps_do_auto_schedule作为中断处理程序，参数ps不可用，参数ps实际上是Context
 void ps_do_auto_schedule(ProcessScheduler *ps, TContext *context) {  //时间片轮转算法
+    if(ps->flags & PROCESS_SCHEDULER_LOCKED) {
+        return;
+    }
+    ps->flags |= PROCESS_SCHEDULER_LOCKED;
     Process *perfer_proc = NULL;
-    if(ps->current) {
-        ru_memcpy(&ps->current->context, context, sizeof(TContext));
-        ps->current->info.status = PROCESS_STATUS_READY;
+    if(ps->current) {  //保存当前进程上下文
+        if(ps->current->info.flags & PROCESS_PRIVILEGE_KERNEL) {
+            ru_memcpy(&ps->current->context, context, sizeof(TContext) - 4);
+        } else {
+            ru_memcpy(&ps->current->context, context, sizeof(TContext));
+        }
     }
     int max_priority = 0;
     for(int i = 0; i < ps->max_process; i++) {  //选出当前剩余时间片最多的进程
@@ -169,15 +177,23 @@ void ps_do_auto_schedule(ProcessScheduler *ps, TContext *context) {  //时间片
 
         if(perfer_proc->info.status == PROCESS_STATUS_READY) 
             perfer_proc->info.status = PROCESS_STATUS_RUNNING;
-
-        ru_memcpy(context, &ps->current->context, sizeof(TContext)); 
+        
+        if(ps->current->info.flags & PROCESS_PRIVILEGE_KERNEL) {
+            ru_memcpy(context, &ps->current->context, sizeof(TContext) - 4);
+        } else {
+            ru_memcpy(context, &ps->current->context, sizeof(TContext));
+        }
+        
     } else { // //依然没有进程可以调度，挂起
-    /*
+    
+        /*
         ru_text_set_color(VGA_TEXT_RED);
         ru_text_print("[ Halt ] No process to switch\n");
         ru_kernel_suspend();
-    */
+        */
+    //    ps->current = NULL;
     }
+    ps->flags &= (~PROCESS_SCHEDULER_LOCKED);
 }
 
 //阻塞进程
@@ -226,13 +242,12 @@ int32 ps_get_process(ProcessScheduler *ps, uint32 pid, Process **process) {
 void ps_immdiate_reschedule(void *context) {
     ProcessScheduler *ps = ps_get_working_scheduler();
     ps_do_auto_schedule(ps, context);
-    ru_memcpy(context, &ps->current->context, sizeof(TContext));
 }
 
 void ps_exit_process(uint32 exit_code) {
     ProcessScheduler *ps = ps_get_working_scheduler();
     ps->current->info.exit_code = exit_code;
-    ps->current->info.flags &= (~PROCESS_PRESENT);
+    ps->current->info.flags = 0;
     ps_immdiate_reschedule(&ps->current->context);
     return;
 }

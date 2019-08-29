@@ -23,9 +23,7 @@ struct tagMessage;
 typedef struct tagProcessQueuer {
     //发送这个queuer的进程id
     uint32 process_id;
-
-    struct tagMessage *message;
-    
+    //struct tagMessage *message;
     struct tagProcessQueuer *next;
 }ProcessQueuer;
 
@@ -60,13 +58,12 @@ typedef struct tagProcessInfo {
     //调度器
     struct tagProcessScheduler *scheduler;
 
-    //
+    //同步ipc 数据部分
+    struct tagMessage *queuing_message;  //当前消息
     ProcessQueuer *queuing_list;
     ProcessQueuer *queuing_tail;
 
     //TODO: 补充其它的通用进程信息
-    
-    
 
     //通用的扩展信息部分
     void *info_extra;
@@ -108,7 +105,11 @@ typedef struct tagProcessScheduler {
     Process *proc_table;
     uint32 max_process;
     Process *current;
+    uint32 flags;
 }ProcessScheduler;
+
+#define PROCESS_SCHEDULER_LOCKED        0x01
+
 
 //初始化
 int32 ps_initialize(ProcessScheduler *ps, uint32 max_process);

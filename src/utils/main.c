@@ -17,7 +17,7 @@
 #define KERNEL_RESERVE_SIZE (32 * 1024 * 1024)
 
 //内核代码保留空间
-#define KERNEL_CODE_RESERVE_SIZE (2 * 1024 * 1024)
+#define KERNEL_CODE_RESERVE_SIZE (4 * 1024 * 1024)
 
 void hello() {
     ru_text_init();
@@ -51,6 +51,14 @@ int basic_mm_init() {
     return STATUS_SUCCESS;
 }
 
+//内核后台进程
+void process_kernel_daemon() EXPORT_SYMBOL(process_kernel_daemon);
+void process_kernel_daemon() {
+    //ru_kernel_suspend();  //never exit
+    for(;;);
+}
+
+/*
 //暂时的代码，测试多任务
 int process1_main() EXPORT_SYMBOL(process1_main);
 int process2_main() EXPORT_SYMBOL(process2_main);
@@ -120,77 +128,80 @@ void test_process() {
     pinfo.stack_size = 0x500;
     ps_add_process(&ps, &pinfo);
 
-    ps_schedule(&ps, 10);  //10ms一个时间片，开始调度
     ru_kernel_suspend(); 
 }
-
+*/
 
 //暂时的代码，测试ipc
 void process_sender() EXPORT_SYMBOL(process_sender);
 void process_sender() {
     char data1[] = "Hello world";
     char data2[] = "Hi world";
+    char tip1[] = "sender: Sended data1\n";
+    char tip2[] = "sender: Sended data2\n";
+    char tip3[] = "sender: Exited\n";
 
     TMessage msg;
     msg.message = 233;  //message id，测试的时候随便写的
     msg.shared_data = data1;
     msg.sizeof_data = sizeof(data1);
-    ipc_send(&msg, 1);   //在目标进程notify之前阻塞
-    ru_text_print("sender: Sended data1\n");
+    ru_text_print(tip1);
+    ipc_send(&msg, 2);   //在目标进程notify之前阻塞
+    msg.message = 233;
     msg.shared_data = data2;
     msg.sizeof_data = sizeof(data2);
-    ipc_send(&msg, 1);
-    ru_text_print("sender: Sended data2\n");
+    ru_text_print(tip2);
+    ipc_send(&msg, 2);
     msg.message = 1024;  //make receiver exit
     msg.sizeof_data = 0;
-    ipc_send(&msg, 1);
-    ps_exit_process(0);
+    ipc_send(&msg, 2);
+    ru_text_print(tip3);
+    ru_kernel_suspend();
+    //ps_exit_process(0);
 }
 void process_receiver() EXPORT_SYMBOL(process_receiver);
 void process_receiver() {
     TMessage msg;
-    for(int i = 0; i < 1000; i++) {
+    char tip1[] = "receiver: Got ";
+    char tip2[] = "receiver: Got exiting message\n";
+    for(;;) {
         ipc_recv(&msg);  //没有消息时会阻塞
         if(msg.message == 233) {
-            ru_text_print("receiver: Got ");
+            ru_text_print(tip1);
             ru_text_print(msg.shared_data);
             ru_text_putchar('\n');
             msg.sizeof_return = 0;
             ipc_notify(&msg);
+            continue;
         } else if(msg.message == 1024) {
-            ru_text_print("receiver: Exited\n");
+            ru_text_print(tip2);
             msg.sizeof_return = 0;
             ipc_notify(&msg);
-            ps_exit_process(0);
+            ru_kernel_suspend();
+            //ps_exit_process(0);
+            continue;
         }
     }
 }
 
-void test_ipc() {
-    ProcessScheduler ps;
-    ps_initialize(&ps, 2);
-
+void test_ipc(ProcessScheduler *ps) {
     ProcessInfo pinfo;
     ru_memset(&pinfo, 0, sizeof(pinfo));
     //入口点
     pinfo.entry = process_sender;
     pinfo.priority = 40;
     //设置栈
-    pinfo.stack = ru_malloc(0x500);
-    pinfo.stack_size = 0x500;
+    pinfo.stack = ru_malloc(0x1000);
+    pinfo.stack_size = 0x1000;
     //标记
     pinfo.flags = PROCESS_PRESENT | PROCESS_PRIVILEGE_KERNEL;
-    ps_add_process(&ps, &pinfo);
+    ps_add_process(ps, &pinfo);
 
     pinfo.entry = process_receiver;
     pinfo.priority = 50;    
-    pinfo.stack = ru_malloc(0x500);
-    pinfo.stack_size = 0x500;
-    ps_add_process(&ps, &pinfo);
-
-    ps_schedule(&ps, 10);
-
-    ru_kernel_suspend();
+    pinfo.stack = ru_malloc(0x1000);
+    pinfo.stack_size = 0x1000;
+    ps_add_process(ps, &pinfo);
 }
 
 void TaurixCMain() EXPORT_SYMBOL(TaurixCMain);
@@ -215,14 +226,30 @@ void TaurixCMain() {
         ru_text_set_color(VGA_TEXT_BLUE);
         ru_text_print("[ OK ] Initialize the architecture, TODO: Finish this module.\n");
     }
-    
+     
+    ru_enable_interrupt();
+
+    //初始化IPC机制
     init_ipc();
 
-    //TODO: fixme: process 
-    ru_enable_interrupt();
-    //test_process();
+    //启动内核后台进程
+    ProcessScheduler ps;
+    ps_initialize(&ps, 128);
+
+    ProcessInfo pinfo;
+    ru_memset(&pinfo, 0, sizeof(pinfo));
+    pinfo.entry = process_kernel_daemon;
+    pinfo.priority = 5;   //非常低的优先权
+    pinfo.stack = ru_malloc(0x500);
+    pinfo.stack_size = 0x500;
+    pinfo.flags = PROCESS_PRESENT | PROCESS_PRIVILEGE_KERNEL;
+    //其它信息会由调度器自动填充
+    ps_add_process(&ps, &pinfo);
     
-    test_ipc();
+    //加入测试ipc用的进程
+    test_ipc(&ps);
+
+    ps_schedule(&ps, 10);  //10ms一个时间片，开始调度
     
-    ru_kernel_suspend();
+    ru_kernel_suspend();   //实际上执行不到这里，前面已经把控制权交给调度器了
 }

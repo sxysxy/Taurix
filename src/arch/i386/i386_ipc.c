@@ -17,12 +17,13 @@ void ipc_syscall(TContext *context) EXPORT_SYMBOL(ipc_syscall);
 void ipc_syscall(TContext *context) {
     ProcessScheduler *ps = ps_get_working_scheduler();
     TMessage *msg = (TMessage*)context->ebx;
-    uint32 sender_pid = ((ProcessInfo*)ps->current)->pid;
-    msg->sender_pid = sender_pid;
+    
     switch (context->eax)
     {
     case 0:         //send
         {
+        uint32 sender_pid = ((ProcessInfo*)ps->current)->pid;
+        msg->sender_pid = sender_pid;
         uint32 receiver_pid = context->ecx;
         if(receiver_pid < 0 || receiver_pid >= ps->max_process) {
             context->eax = STATUS_FAILED;
@@ -31,28 +32,11 @@ void ipc_syscall(TContext *context) {
         Process *receiver = NULL;
         ps_get_process(ps, receiver_pid, &receiver);
         if(!receiver) return;
+        if(receiver < ps->proc_table || (void*)receiver >= (void*)((char*)ps->proc_table)+ps->max_process*process_query_sizeof_process())
+            receiver = (Process*)(((char*)ps->proc_table) + receiver_pid*process_query_sizeof_process());
         ProcessInfo *ri = (ProcessInfo*)receiver;
+       
         /*
-        if(ri->status != PROCESS_STATUS_RECEIVING) {
-            context->eax = STATUS_FAILED;
-            return;
-        }*/
-
-        //阻塞sender
-        ps_block_process(ps, sender_pid, PROCESS_STATUS_SENDING);
-        
-        //加入queuer
-        ProcessQueuer *queuer = (ProcessQueuer *)ru_malloc(sizeof(ProcessQueuer));
-        queuer->next = NULL;
-        queuer->process_id = sender_pid;
-        queuer->message = msg;
-        if(ri->queuing_list) {
-            ri->queuing_tail->next = queuer;
-            ri->queuing_tail = queuer;
-        } else {
-            ri->queuing_list = ri->queuing_tail = queuer;
-        }
-
         if(ps_check_deadlock(ps, sender_pid)) {
             if(((ProcessInfo*)ps->current)->flags & PROCESS_PRIVILEGE_KERNEL) {
                 ru_text_set_color(VGA_TEXT_RED);
@@ -60,7 +44,12 @@ void ipc_syscall(TContext *context) {
                 ru_kernel_suspend();
             }
         }
+        */
+
+        ((ProcessInfo*)ps->current)->queuing_message = msg;
         
+        //阻塞sender
+        ps_block_process(ps, sender_pid, PROCESS_STATUS_SENDING);
         context->eax = ipc_send_impl(msg, receiver);
 
         ps_immdiate_reschedule(context);
@@ -70,6 +59,7 @@ void ipc_syscall(TContext *context) {
         break;     
 
     case 1:         //receive
+        ((ProcessInfo*)ps->current)->queuing_message = msg;
         context->eax = ipc_recv_impl(msg);
         ps_immdiate_reschedule(context);
         return;
@@ -92,5 +82,5 @@ void ipc_syscall(TContext *context) {
 
 
 void init_ipc() {
-    i386_set_idt_item(g_idt + IPC_INT_GATE_INDEX, SELECTOR_INDEX_CODE32_KERNEL, (uint32)entry_ipc_syscall, FLAGS_INTGATE);    
+    i386_set_idt_item(g_idt + IPC_INT_GATE_INDEX, SELECTOR_INDEX_CODE32_KERNEL, (uint32)entry_ipc_syscall, FLAGS_TRAPGATE);    
 }

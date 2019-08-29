@@ -73,7 +73,13 @@ typedef struct tagContext {
 
     uint32 edi, esi, ebp, esp, ebx, edx, ecx, eax;  //ints_wrapper中pushad压入，这里结构体中跟pushad指令入栈顺序是反过来的
     uint32 ds, es, fs, gs;                          //ints_wrapper中压入
-    uint32 eip, cs, eflags, esp0, ss0;              //cpu自动压入栈中，esp0, ss0为切换栈之前的esp与ss   
+    uint32 eip, cs, eflags, esp0;                   //cpu自动压入栈中，esp0, 为切换栈之前的esp
+    
+    //不同特权级间切换时上下文保存该字段
+    union {
+        uint32 ss0;                                      
+        uint32 unused;   
+    };
 }TContext;
 
 extern GDTItem *g_gdt;
@@ -195,8 +201,10 @@ extern IDTItem *g_idt;
 #define TSS32_LIMIT                    (sizeof(TSS32)-1)
 
 //INTGATE
-//读/执行,一致代码段,有效,系统段(门描述符)
 #define FLAGS_INTGATE                  (GATE_INT | GATE_BITS_32 | GATE_P)
+
+//TRAPGATE陷阱门
+#define FLAGS_TRAPGATE                 (GATE_TRAP | GATE_BITS_32 | GATE_P)
 
 //获得当前活动的cpu的编号
 //TODO: 完成 实现！ 重要
