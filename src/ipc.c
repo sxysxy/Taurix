@@ -9,6 +9,8 @@
 
 int32 ipc_send_impl(TMessage *msg, Process *receiver) {
     ProcessInfo *ri = (ProcessInfo*)receiver;
+    ProcessInfo *si = (ProcessInfo*)ps_get_working_scheduler()->current;
+
     if(ri->status == PROCESS_STATUS_RECEIVING) {
         ru_memcpy(ri->queuing_message, msg, sizeof(TMessage));
         ps_unblock_process(ps_get_working_scheduler(), ri->pid);

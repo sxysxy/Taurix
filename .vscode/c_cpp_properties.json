@@ -3,8 +3,7 @@
         {
             "name": "Taurix",
             "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cppStandard": "c++14",
+            "compilerPath": "${workspaceFolder}/toolchain/MinGW/bin/gcc.exe",
             "cStandard": "c99",
             "includePath": ["${default}", "${workspaceFolder}/include"]
         }

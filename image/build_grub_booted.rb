@@ -14,7 +14,13 @@ else
     FileUtils.cp("template.img", "Taurix.img")
 end
 
-if !system("tfstools Taurix.tfs > ImageBuild.log")
+tfstools = "tfstools"
+
+if RUBY_PLATFORM =~ /mswin/ || RUBY_PLATFORM =~ /mingw/
+    tfstools = "..\\toolchain\\tfstools.exe"
+end
+
+if !system("#{tfstools} Taurix.tfs > ImageBuild.log")
     FileUtils.rm("Taurix.img")
     puts("Failed to build Taurix.img")
     exit 1

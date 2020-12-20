@@ -9,6 +9,7 @@
 #include <taurix/arch_init.h>
 #include <taurix/process.h>
 #include <taurix/ipc.h>
+#include <taurix/utils/vector.h>
 
 //内核起始地址
 #define KERNEL_BASE_ADDRESS ((void*)0x100000)
@@ -135,35 +136,54 @@ void test_process() {
 //暂时的代码，测试ipc
 void process_sender() EXPORT_SYMBOL(process_sender);
 void process_sender() {
+    char sender[] = "Sender starting message\n";
     char data1[] = "Hello world";
     char data2[] = "Hi world";
-    char tip1[] = "sender: Sended data1\n";
-    char tip2[] = "sender: Sended data2\n";
+    char tip1[] = "Sender: Sended data1\n";
+    char tip2[] = "Sender: Sended data2\n";
     char tip3[] = "sender: Exited\n";
+
+    /*
+    TVector vec;
+    vector_init(&vec);
+    int a, b;
+    vector_push(&vec, 2);
+    vector_push(&vec, 3);
+    vector_pop(&vec, a);
+    vector_pop(&vec, b);
+
+    vector_finalize(&vec);
+    char test_vec[30];
+    ru_sprintf_s(test_vec, 30, "Sender starting message: %d %d\n", a, b);
+    ru_text_print(test_vec);*/
+    ru_text_print(sender);
 
     TMessage msg;
     msg.message = 233;  //message id，测试的时候随便写的
     msg.shared_data = data1;
     msg.sizeof_data = sizeof(data1);
     ru_text_print(tip1);
-    ipc_send(&msg, 2);   //在目标进程notify之前阻塞
+    ipc_send(&msg, 1);   //在目标进程notify之前阻塞
     msg.message = 233;
     msg.shared_data = data2;
     msg.sizeof_data = sizeof(data2);
     ru_text_print(tip2);
-    ipc_send(&msg, 2);
+    ipc_send(&msg, 1);
     msg.message = 1024;  //make receiver exit
     msg.sizeof_data = 0;
-    ipc_send(&msg, 2);
+    ipc_send(&msg, 1);
     ru_text_print(tip3);
     ru_kernel_suspend();
-    //ps_exit_process(0);
+    ps_exit_process(0);
 }
 void process_receiver() EXPORT_SYMBOL(process_receiver);
 void process_receiver() {
     TMessage msg;
-    char tip1[] = "receiver: Got ";
-    char tip2[] = "receiver: Got exiting message\n";
+    char tip1[] = "Receiver: Got ";
+    char tip2[] = "Receiver: Got exiting message\n";
+    char recvmsgp[] = "Receiver starting mssage: yep!\n";
+    ru_text_print(recvmsgp);
+
     for(;;) {
         ipc_recv(&msg);  //没有消息时会阻塞
         if(msg.message == 233) {
@@ -177,8 +197,8 @@ void process_receiver() {
             ru_text_print(tip2);
             msg.sizeof_return = 0;
             ipc_notify(&msg);
-            ru_kernel_suspend();
-            //ps_exit_process(0);
+           ru_kernel_suspend();
+            ps_exit_process(0);
             continue;
         }
     }

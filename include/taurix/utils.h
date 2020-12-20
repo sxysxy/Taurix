@@ -53,11 +53,24 @@ typedef unsigned long long uint64;
 #elif __i386__
 #define size_t uint32
 #endif
-typedef void *TObject;
+
+typedef struct _TObject {
+    uint32 typeinfo;
+    struct {
+        size_t object_lock;
+        size_t refer_count;
+        void *constructor, *destructor, *query_interface;
+    };
+}TObject;
+#define AS_OBJECT(p) ((TObject*)(p))
 
 //公用工具函数/定义
 #ifndef NULL
+#ifdef __cplusplus
+#define NULL nullptr
+#else
 #define NULL ((void *)0)
+#endif
 #endif
 
 #define EXPORT_SYMBOL(x) asm(#x)
@@ -137,8 +150,6 @@ void ru_kernel_suspend() EXPORT_SYMBOL(ru_kernel_suspend);  //src->/平台/arch_
 //TODO
 
 //->src/utils/utils.c
-void tobject_initialize(TObject *self);
-void tobject_finalize(TObject *self);
 
 CEND
 

@@ -19,14 +19,15 @@ void keyboard_int_handler(TContext *context) {
         /* 0x57 */"F11", "F12", "unsupported"
     };
 
-    ru_text_set_color(VGA_TEXT_GREEN);
-    char tmp[100];
+    //ru_text_set_color(VGA_TEXT_GREEN);
+    //char tmp[100];
     uint8 scan_code = ru_port_read8(0x60);
-    if(scan_code > 0x58 && !(scan_code & 0x80)) {
-        scan_code = 0x59;
-    }
-    ru_sprintf_s(tmp, 100, "[ MSG ] Keyboard: %s | %s\n", scan_code_table[scan_code & ~(0x80)], (scan_code & 0x80) ? "UP" : "DOWN");
-    ru_text_print(tmp);
+    //if(scan_code > 0x58 && !(scan_code & 0x80)) {
+    //    scan_code = 0x59;
+   // }
+   // ru_sprintf_s(tmp, 100, "[ MSG ] Keyboard: %s | %s\n", scan_code_table[scan_code & ~(0x80)], (scan_code & 0x80) ? "UP" : "DOWN");
+   // ru_text_print(tmp);
+    // EOI
     ru_port_write8(0x20, 0x61);
     i386_nop3();
 }

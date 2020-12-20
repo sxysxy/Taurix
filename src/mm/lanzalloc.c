@@ -39,31 +39,40 @@ static void lanzalloc_defragment_full_cycle(struct lanzalloc* lanzalloc) {
 
 // Initialize lanzalloc
 struct lanzalloc* lanzalloc_initialize(void* memory, unsigned int size, unsigned int maxunit) {
-	struct lanzalloc* lanzalloc = memory;
+#ifdef __cplusplus
+	struct lanzalloc* alloc = reinterpret_cast<struct lanzalloc*>(memory);
+#else 
+	struct lanzalloc* alloc = memory;
+#endif
 	do {
 		if (size < (sizeof(struct lanzalloc) + sizeof(struct unit) * maxunit)) break;
-		lanzalloc->unitMax = maxunit;
-		lanzalloc->units = (void*)((char*)memory + sizeof(struct lanzalloc));
-		lanzalloc->pool = (void*)((char*)memory + sizeof(struct lanzalloc) + sizeof(struct unit) * maxunit);
-		lanzalloc->poolSize = size - (sizeof(struct lanzalloc) + sizeof(struct unit) * maxunit);
+		alloc->unitMax = maxunit;
+#ifdef __cplusplus
+		alloc->units = (void*)((char*)memory + sizeof(struct lanzalloc));
+		alloc->pool = (void*)((char*)memory + sizeof(struct lanzalloc) + sizeof(struct unit) * maxunit);
+#else 
+		alloc->units = (void*)((char*)memory + sizeof(struct lanzalloc));
+		alloc->pool = (void*)((char*)memory + sizeof(struct lanzalloc) + sizeof(struct unit) * maxunit);
+#endif
+		alloc->poolSize = size - (sizeof(struct lanzalloc) + sizeof(struct unit) * maxunit);
 		int i = 1;
 		for (; i < maxunit; i++) {
-			lanzalloc->units[i].size = 0;
-			lanzalloc->units[i].address = 0;
+			alloc->units[i].size = 0;
+			alloc->units[i].address = 0;
 		}
-		lanzalloc->units[0].size = lanzalloc->poolSize;
-		lanzalloc->units[0].address = lanzalloc->pool;
-		return lanzalloc;
+		alloc->units[0].size = alloc->poolSize;
+		alloc->units[0].address = alloc->pool;
+		return alloc;
 	} while(0);
 	return 0;
 }
 
 // Alloc
-void* lanzalloc_alloc(struct lanzalloc* lanzalloc, unsigned int size) {
+void* lanzalloc_alloc(struct lanzalloc* alloc, unsigned int size) {
 	int i;
 	do {
-		for (i = 0; i < lanzalloc->unitMax; i++) {
-			struct unit* unit = lanzalloc->units + i;
+		for (i = 0; i < alloc->unitMax; i++) {
+			struct unit* unit = alloc->units + i;
 			// Find a free unit.
 			if (unit->size) {
 				if (unit->size >= size + sizeof(unsigned int)) {
@@ -84,7 +93,7 @@ void* lanzalloc_alloc(struct lanzalloc* lanzalloc, unsigned int size) {
 				}
 			}
 		}
-	} while(lanzalloc_defragment(lanzalloc));
+	} while(lanzalloc_defragment(alloc));
 	return 0;
 }
 

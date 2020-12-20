@@ -60,6 +60,11 @@ int32 ru_text_get_rows() {
  */
 int32 ru_text_putchar(int ch) {
     int old_row = cursor_row, old_col = cursor_col;
+    if(ch == '\t') {
+        ru_text_print("    ");
+        return ch;
+    }
+    
     if(ch == '\n' || ++cursor_col >= COLUMNS) {
         cursor_row += 1;
         cursor_col = 0;
@@ -74,7 +79,8 @@ int32 ru_text_putchar(int ch) {
                 ru_port_write8(0x3d5, 0);
                 ru_enable_interrupt();
                 ru_memset(vram, 0, sizeof(TextChar) * COLUMNS * ROWS * 8);
-                return ru_text_putchar(ch);
+                //return ru_text_putchar(ch);
+                return ch;
             }
 
             uint32 pos = (80*(cursor_row-25));

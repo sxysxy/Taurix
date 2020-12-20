@@ -2,6 +2,10 @@ taurix-settings-final.json
 Taurix
 Taurix.img
 Makefile
+bin_release
+build_release
+bin_debug
+build_debug
 QemuRun.sh
 QemuRun.rb
 QemuDebug.sh
